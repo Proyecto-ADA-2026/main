@@ -1,3 +1,5 @@
-__pycache__/
+﻿__pycache__/
 *.pyc
-.venv/
+matriz_A.txt
+matriz_A3.txt
+resultados/*.txt
