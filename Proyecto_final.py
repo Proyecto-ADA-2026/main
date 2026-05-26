@@ -389,3 +389,35 @@ def arbol_a_ascii(raiz):
     for linea in lineas:
         lineas_centradas.append(linea.center(ancho_maximo + 8))
     return "\n".join(lineas_centradas)
+
+
+def exportar_arbol_dot(raiz, nombre_grafo="Arbol"):
+    lineas = []
+    lineas.append(f"digraph {nombre_grafo} {{")
+    lineas.append("    node [shape=circle];")
+
+    contador = [0]
+
+    def recorrer(nodo):
+        if nodo is None:
+            return None
+
+        id_actual = contador[0]
+        contador[0] += 1
+
+        lineas.append(f'    nodo{id_actual} [label="{nodo.valor}"];')
+
+        id_izq = recorrer(nodo.izquierda)
+        if id_izq is not None:
+            lineas.append(f'    nodo{id_actual} -> nodo{id_izq};')
+
+        id_der = recorrer(nodo.derecha)
+        if id_der is not None:
+            lineas.append(f'    nodo{id_actual} -> nodo{id_der};')
+
+        return id_actual
+
+    recorrer(raiz)
+
+    lineas.append('}')
+    return "\n".join(lineas)

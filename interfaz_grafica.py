@@ -2,6 +2,12 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import os
 
+try:
+    import tksheet
+    TKSHEET_DISPONIBLE = True
+except ImportError:
+    TKSHEET_DISPONIBLE = False
+
 
 # =========================================================
 # FRONTEND (INTERFAZ)
@@ -21,6 +27,7 @@ from Proyecto_final import (
     buscar_en_arbol,
     medir_tiempo,
     arbol_a_ascii,
+    exportar_arbol_dot,
 )
 
 
@@ -143,16 +150,44 @@ class App(tk.Tk):
         self.btn_abrir_A = ttk.Button(
             top,
             text="Abrir TXT Matriz A",
-            command=lambda: self.abrir_archivo_txt("matriz_A.txt"),
+            command=lambda: self.abrir_archivo_resultado("matriz_A.txt"),
         )
         self.btn_abrir_A.pack(side="left", padx=5)
 
         self.btn_abrir_A3 = ttk.Button(
             top,
             text="Abrir TXT Matriz A³",
-            command=lambda: self.abrir_archivo_txt("matriz_A3.txt"),
+            command=lambda: self.abrir_archivo_resultado("matriz_A3.txt"),
         )
         self.btn_abrir_A3.pack(side="left", padx=5)
+
+        self.btn_ver_dot_A = ttk.Button(
+            top,
+            text="Ver gráfico Árbol A",
+            command=lambda: self.abrir_archivo_resultado("arbol_A.dot"),
+        )
+        self.btn_ver_dot_A.pack(side="left", padx=5)
+
+        self.btn_ver_dot_A3 = ttk.Button(
+            top,
+            text="Ver gráfico Árbol A³",
+            command=lambda: self.abrir_archivo_resultado("arbol_A3.dot"),
+        )
+        self.btn_ver_dot_A3.pack(side="left", padx=5)
+
+        self.btn_ver_tabla_A = ttk.Button(
+            top,
+            text="Ver tabla Matriz A",
+            command=lambda: self.mostrar_matriz_en_tabla("Matriz A", self.A),
+        )
+        self.btn_ver_tabla_A.pack(side="left", padx=5)
+
+        self.btn_ver_tabla_A3 = ttk.Button(
+            top,
+            text="Ver tabla Matriz A³",
+            command=lambda: self.mostrar_matriz_en_tabla("Matriz A³", self.A3),
+        )
+        self.btn_ver_tabla_A3.pack(side="left", padx=5)
 
         tk.Label(
             top,
@@ -489,6 +524,31 @@ class App(tk.Tk):
             else:
                 self.status.config(text="Estado: matriz generada correctamente. Ya puedes buscar un número.")
 
+            # Exportar DOT para árboles pequeños y generar un mensaje para los grandes.
+            nodos_A = self.contar_nodos_arbol(self.arbol_A)
+            nodos_A3 = self.contar_nodos_arbol(self.arbol_A3)
+
+            if nodos_A <= 100:
+                contenido_A = exportar_arbol_dot(self.arbol_A, "ArbolA")
+            else:
+                contenido_A = (
+                    "// El árbol fue generado correctamente, pero no se exporta completo "
+                    "porque tiene demasiados nodos.\n"
+                    f"Nodos: {nodos_A}\n"
+                )
+
+            if nodos_A3 <= 100:
+                contenido_A3 = exportar_arbol_dot(self.arbol_A3, "ArbolA3")
+            else:
+                contenido_A3 = (
+                    "// El árbol fue generado correctamente, pero no se exporta completo "
+                    "porque tiene demasiados nodos.\n"
+                    f"Nodos: {nodos_A3}\n"
+                )
+
+            self.guardar_texto_en_archivo("arbol_A.dot", contenido_A)
+            self.guardar_texto_en_archivo("arbol_A3.dot", contenido_A3)
+
         except Exception as error:
             messagebox.showerror("Error", f"Ocurrió un problema al generar la matriz:\n{error}")
             self.status.config(text="Estado: ocurrió un error al generar la matriz.")
@@ -547,7 +607,14 @@ class App(tk.Tk):
         self._append_text(self.txt_result, mensaje)
         self.status.config(text="Estado: búsqueda completada.")
 
-    def abrir_archivo_txt(self, nombre_archivo):
+    def guardar_texto_en_archivo(self, nombre_archivo, contenido):
+        carpeta_resultados = "resultados"
+        os.makedirs(carpeta_resultados, exist_ok=True)
+        ruta_completa = os.path.join(carpeta_resultados, nombre_archivo)
+        with open(ruta_completa, "w", encoding="utf-8") as archivo:
+            archivo.write(contenido)
+
+    def abrir_archivo_resultado(self, nombre_archivo):
         ruta_archivo = os.path.join("resultados", nombre_archivo)
 
         if not os.path.exists(ruta_archivo):
@@ -565,8 +632,39 @@ class App(tk.Tk):
                 f"No se pudo abrir el archivo:\n{error}"
             )
 
+    def abrir_archivo_txt(self, nombre_archivo):
+        self.abrir_archivo_resultado(nombre_archivo)
 
-# =========================================================
+    def contar_nodos_arbol(self, raiz):
+        if raiz is None:
+            return 0
+        return 1 + self.contar_nodos_arbol(raiz.izquierda) + self.contar_nodos_arbol(raiz.derecha)
+
+    def mostrar_matriz_en_tabla(self, titulo, matriz):
+        if matriz is None:
+            messagebox.showwarning(
+                "Matriz no generada",
+                "Primero genera la matriz para poder mostrarla."
+            )
+            return
+
+        if not TKSHEET_DISPONIBLE:
+            messagebox.showinfo(
+                "tksheet no disponible",
+                "Para ver la tabla instala tksheet o abre el archivo .txt."
+            )
+            return
+
+        ventana = tk.Toplevel(self)
+        ventana.title(titulo)
+        ventana.geometry("900x600")
+
+        hoja = tksheet.Sheet(ventana, data=matriz)
+        hoja.pack(fill="both", expand=True)
+
+        hoja.enable_bindings(
+            ("single_select", "row_select", "column_width_resize", "arrowkeys", "right_click_popup_menu")
+        )
 # MAIN
 # =========================================================
 
