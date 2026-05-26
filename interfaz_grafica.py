@@ -143,6 +143,35 @@ def insertion_sort_ascendente(vector):
     return vector
 
 
+def merge_sort_ascendente(vector):
+    if len(vector) <= 1:
+        return vector
+
+    medio = len(vector) // 2
+    izquierda = merge_sort_ascendente(vector[:medio])
+    derecha = merge_sort_ascendente(vector[medio:])
+
+    resultado = []
+    i = j = 0
+    while i < len(izquierda) and j < len(derecha):
+        if izquierda[i] <= derecha[j]:
+            resultado.append(izquierda[i])
+            i += 1
+        else:
+            resultado.append(derecha[j])
+            j += 1
+
+    resultado.extend(izquierda[i:])
+    resultado.extend(derecha[j:])
+    return resultado
+
+
+def ordenar_ascendente(vector):
+    if len(vector) <= 64:
+        return insertion_sort_ascendente(vector)
+    return merge_sort_ascendente(vector)
+
+
 class Nodo:
     def __init__(self, valor):
         self.valor = valor
@@ -657,8 +686,8 @@ class App(tk.Tk):
             vector_A = matriz_a_vector(self.A)
             vector_A3 = matriz_a_vector(self.A3)
 
-            vector_A_asc = insertion_sort_ascendente(list(vector_A))
-            vector_A3_asc = insertion_sort_ascendente(list(vector_A3))
+            vector_A_asc = ordenar_ascendente(list(vector_A))
+            vector_A3_asc = ordenar_ascendente(list(vector_A3))
 
             self.arbol_A = construir_arbol_equilibrado(vector_A_asc, 0, len(vector_A_asc) - 1)
             self.arbol_A3 = construir_arbol_equilibrado(vector_A3_asc, 0, len(vector_A3_asc) - 1)
@@ -671,9 +700,29 @@ class App(tk.Tk):
             self._set_text(self.text_A, self._mat_to_str(self.A))
             self._set_text(self.text_A3, self._mat_to_str(self.A3))
 
-            ascii_arbol_A = arbol_a_ascii(self.arbol_A)
-            ascii_arbol_A3 = arbol_a_ascii(self.arbol_A3)
-            self._set_text(self.txt_arbol, "ARBOL A:\n" + ascii_arbol_A + "\n\nARBOL A³:\n" + ascii_arbol_A3)
+            # Mostrar ASCII del árbol solo si el vector ordenado no es demasiado grande
+            if len(vector_A_asc) <= 63:
+                ascii_arbol_A = arbol_a_ascii(self.arbol_A)
+            else:
+                ascii_arbol_A = (
+                    "Árbol A generado correctamente.\n"
+                    f"No se muestra porque tiene {len(vector_A_asc)} nodos.\n"
+                    "La búsqueda en árbol sigue funcionando normalmente."
+                )
+
+            if len(vector_A3_asc) <= 63:
+                ascii_arbol_A3 = arbol_a_ascii(self.arbol_A3)
+            else:
+                ascii_arbol_A3 = (
+                    "Árbol A³ generado correctamente.\n"
+                    f"No se muestra porque tiene {len(vector_A3_asc)} nodos.\n"
+                    "La búsqueda en árbol sigue funcionando normalmente."
+                )
+
+            self._set_text(
+                self.txt_arbol,
+                "ARBOL A:\n" + ascii_arbol_A + "\n\nARBOL A³:\n" + ascii_arbol_A3,
+            )
 
             def resumen_analisis(nombre, analisis):
                 return (
@@ -689,16 +738,25 @@ class App(tk.Tk):
             salida = []
             salida.append(resumen_analisis("RESUMEN MATRIZ A", analisis_A))
             salida.append("\nRepeticiones A:\n")
-            salida.append(
-                ", ".join(f"{k}: {rep_A[k]}" for k in sorted(rep_A)) if rep_A else "Sin datos"
-            )
+            # Usar nuestro propio ordenamiento para las claves (evitar sorted())
+            if rep_A:
+                claves_A = ordenar_ascendente(list(rep_A.keys()))
+                salida.append(
+                    ", ".join(f"{k}: {rep_A[k]}" for k in claves_A)
+                )
+            else:
+                salida.append("Sin datos")
 
             salida.append("\n\n")
             salida.append(resumen_analisis("RESUMEN MATRIZ A³", analisis_A3))
             salida.append("\nRepeticiones A³:\n")
-            salida.append(
-                ", ".join(f"{k}: {rep_A3[k]}" for k in sorted(rep_A3)) if rep_A3 else "Sin datos"
-            )
+            if rep_A3:
+                claves_A3 = ordenar_ascendente(list(rep_A3.keys()))
+                salida.append(
+                    ", ".join(f"{k}: {rep_A3[k]}" for k in claves_A3)
+                )
+            else:
+                salida.append("Sin datos")
 
             salida.append("\n\nVECTORES ORDENADOS\n")
             salida.append("------------------\n")
