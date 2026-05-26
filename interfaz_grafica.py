@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
+import subprocess
 
 try:
     import tksheet
@@ -147,48 +148,6 @@ class App(tk.Tk):
         )
         self.btn_generar.pack(side="left", padx=10)
 
-        self.btn_abrir_A = ttk.Button(
-            top,
-            text="Abrir TXT Matriz A",
-            command=lambda: self.abrir_archivo_resultado("matriz_A.txt"),
-        )
-        self.btn_abrir_A.pack(side="left", padx=5)
-
-        self.btn_abrir_A3 = ttk.Button(
-            top,
-            text="Abrir TXT Matriz A³",
-            command=lambda: self.abrir_archivo_resultado("matriz_A3.txt"),
-        )
-        self.btn_abrir_A3.pack(side="left", padx=5)
-
-        self.btn_ver_dot_A = ttk.Button(
-            top,
-            text="Ver gráfico Árbol A",
-            command=lambda: self.abrir_archivo_resultado("arbol_A.dot"),
-        )
-        self.btn_ver_dot_A.pack(side="left", padx=5)
-
-        self.btn_ver_dot_A3 = ttk.Button(
-            top,
-            text="Ver gráfico Árbol A³",
-            command=lambda: self.abrir_archivo_resultado("arbol_A3.dot"),
-        )
-        self.btn_ver_dot_A3.pack(side="left", padx=5)
-
-        self.btn_ver_tabla_A = ttk.Button(
-            top,
-            text="Ver tabla Matriz A",
-            command=lambda: self.mostrar_matriz_en_tabla("Matriz A", self.A),
-        )
-        self.btn_ver_tabla_A.pack(side="left", padx=5)
-
-        self.btn_ver_tabla_A3 = ttk.Button(
-            top,
-            text="Ver tabla Matriz A³",
-            command=lambda: self.mostrar_matriz_en_tabla("Matriz A³", self.A3),
-        )
-        self.btn_ver_tabla_A3.pack(side="left", padx=5)
-
         tk.Label(
             top,
             text="(Si n > 20 se mostrará vista previa. Se guarda en .txt.)",
@@ -197,6 +156,51 @@ class App(tk.Tk):
             font=("Segoe UI", 10),
         ).pack(side="left", padx=10)
 
+        # Segunda fila de botones secundarios
+        botones_frame = ttk.Frame(principal, style="Main.TFrame")
+        botones_frame.pack(fill="x", padx=20, pady=(0, 10))
+
+        self.btn_abrir_A = ttk.Button(
+            botones_frame,
+            text="Abrir TXT Matriz A",
+            command=lambda: self.abrir_archivo_resultado("matriz_A.txt"),
+        )
+        self.btn_abrir_A.pack(side="left", padx=5)
+
+        self.btn_abrir_A3 = ttk.Button(
+            botones_frame,
+            text="Abrir TXT Matriz A³",
+            command=lambda: self.abrir_archivo_resultado("matriz_A3.txt"),
+        )
+        self.btn_abrir_A3.pack(side="left", padx=5)
+
+        self.btn_ver_grafico_A = ttk.Button(
+            botones_frame,
+            text="Ver gráfico Árbol A",
+            command=lambda: self.generar_imagen_graphviz("arbol_A.dot", "arbol_A.png"),
+        )
+        self.btn_ver_grafico_A.pack(side="left", padx=5)
+
+        self.btn_ver_grafico_A3 = ttk.Button(
+            botones_frame,
+            text="Ver gráfico Árbol A³",
+            command=lambda: self.generar_imagen_graphviz("arbol_A3.dot", "arbol_A3.png"),
+        )
+        self.btn_ver_grafico_A3.pack(side="left", padx=5)
+
+        self.btn_ver_tabla_A = ttk.Button(
+            botones_frame,
+            text="Ver tabla Matriz A",
+            command=lambda: self.mostrar_matriz_en_tabla("Matriz A", self.A),
+        )
+        self.btn_ver_tabla_A.pack(side="left", padx=5)
+
+        self.btn_ver_tabla_A3 = ttk.Button(
+            botones_frame,
+            text="Ver tabla Matriz A³",
+            command=lambda: self.mostrar_matriz_en_tabla("Matriz A³", self.A3),
+        )
+        self.btn_ver_tabla_A3.pack(side="left", padx=5)
 
         buscar_frame = tk.LabelFrame(
             principal,
@@ -368,14 +372,18 @@ class App(tk.Tk):
         widget.see("end")
         widget.config(state="disabled")
 
-    def guardar_matriz_en_txt(self, nombre_archivo, matriz):
+    def guardar_matriz_en_txt(self, nombre_archivo, matriz, titulo):
         # Guarda en la carpeta resultados para mantener los archivos organizados.
         carpeta_resultados = "resultados"
         os.makedirs(carpeta_resultados, exist_ok=True)
         ruta_completa = os.path.join(carpeta_resultados, nombre_archivo)
+        n = len(matriz)
         with open(ruta_completa, "w", encoding="utf-8") as f:
+            f.write(f"{titulo}\n")
+            f.write(f"Tamaño: {n}x{n}\n")
+            f.write("=" * 60 + "\n\n")
             for fila in matriz:
-                f.write("   ".join(str(v) for v in fila) + "\n")
+                f.write("   ".join(f"{v:10}" for v in fila) + "\n")
 
     def _mat_to_str(self, M, vista_previa_dim=10):
         n = len(M)
@@ -439,8 +447,8 @@ class App(tk.Tk):
             self.arbol_A3 = construir_arbol_equilibrado(vector_A3_asc, 0, len(vector_A3_asc) - 1)
 
             # Guardado obligatorio para matrices grandes (y también siempre si se desea; aquí siempre se guarda)
-            self.guardar_matriz_en_txt("matriz_A.txt", self.A)
-            self.guardar_matriz_en_txt("matriz_A3.txt", self.A3)
+            self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
+            self.guardar_matriz_en_txt("matriz_A3.txt", self.A3, "Matriz A³")
 
             # UI: vista previa o matriz completa
             self._set_text(self.text_A, self._mat_to_str(self.A))
@@ -606,6 +614,59 @@ class App(tk.Tk):
 
         self._append_text(self.txt_result, mensaje)
         self.status.config(text="Estado: búsqueda completada.")
+
+    def generar_imagen_graphviz(self, archivo_dot, archivo_salida):
+        """Convierte un archivo DOT a PNG usando Graphviz y lo abre."""
+        ruta_dot = os.path.join("resultados", archivo_dot)
+        ruta_salida = os.path.join("resultados", archivo_salida)
+
+        # Verificar si el archivo DOT existe
+        if not os.path.exists(ruta_dot):
+            messagebox.showwarning(
+                "Archivo no encontrado",
+                "Primero genera la matriz para crear el árbol."
+            )
+            return
+
+        # Verificar si el árbol es muy grande
+        try:
+            with open(ruta_dot, "r", encoding="utf-8") as f:
+                contenido = f.read()
+                if "demasiados nodos" in contenido:
+                    messagebox.showinfo(
+                        "Árbol muy grande",
+                        "El árbol fue generado, pero no se visualiza completo porque tiene demasiados nodos. "
+                        "Use n pequeño (por ejemplo 4 a 8) para ver el árbol visual."
+                    )
+                    return
+        except Exception:
+            pass
+
+        # Intentar generar la imagen con Graphviz
+        try:
+            subprocess.run(
+                ["dot", "-Tpng", ruta_dot, "-o", ruta_salida],
+                check=True,
+                capture_output=True
+            )
+            # Si se genera correctamente, abrir la imagen
+            os.startfile(ruta_salida)
+        except FileNotFoundError:
+            messagebox.showerror(
+                "Graphviz no encontrado",
+                "Para ver el árbol como imagen debes instalar Graphviz y asegurarte de que "
+                "el comando 'dot' esté disponible en PATH."
+            )
+        except subprocess.CalledProcessError as e:
+            messagebox.showerror(
+                "Error al generar imagen",
+                f"No se pudo generar la imagen del árbol.\n{e}"
+            )
+        except Exception as e:
+            messagebox.showerror(
+                "Error",
+                f"Ocurrió un error inesperado:\n{e}"
+            )
 
     def guardar_texto_en_archivo(self, nombre_archivo, contenido):
         carpeta_resultados = "resultados"
