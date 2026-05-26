@@ -140,6 +140,20 @@ class App(tk.Tk):
         )
         self.btn_generar.pack(side="left", padx=10)
 
+        self.btn_abrir_A = ttk.Button(
+            top,
+            text="Abrir TXT Matriz A",
+            command=lambda: self.abrir_archivo_txt("matriz_A.txt"),
+        )
+        self.btn_abrir_A.pack(side="left", padx=5)
+
+        self.btn_abrir_A3 = ttk.Button(
+            top,
+            text="Abrir TXT Matriz A³",
+            command=lambda: self.abrir_archivo_txt("matriz_A3.txt"),
+        )
+        self.btn_abrir_A3.pack(side="left", padx=5)
+
         tk.Label(
             top,
             text="(Si n > 20 se mostrará vista previa. Se guarda en .txt.)",
@@ -532,6 +546,24 @@ class App(tk.Tk):
 
         self._append_text(self.txt_result, mensaje)
         self.status.config(text="Estado: búsqueda completada.")
+
+    def abrir_archivo_txt(self, nombre_archivo):
+        ruta_archivo = os.path.join("resultados", nombre_archivo)
+
+        if not os.path.exists(ruta_archivo):
+            messagebox.showwarning(
+                "Archivo no encontrado",
+                "Primero genera la matriz para crear el archivo."
+            )
+            return
+
+        try:
+            os.startfile(ruta_archivo)
+        except Exception as error:
+            messagebox.showerror(
+                "Error",
+                f"No se pudo abrir el archivo:\n{error}"
+            )
 
 
 # =========================================================
