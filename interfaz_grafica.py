@@ -464,7 +464,7 @@ class App(tk.Tk):
         )
         buscar_frame.pack(fill="x", padx=20, pady=(0, 10))
 
-        ttk.Label(
+        tk.Label(
             buscar_frame,
             text="Número a buscar:",
             bg="#f4f6f9",
