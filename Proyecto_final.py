@@ -18,6 +18,7 @@ def crear_matriz(n):
     for _ in range(n):
         fila = []
         for _ in range(n):
+            # Cada elemento es un número aleatorio entre 0 y 9
             fila.append(random.randint(0, 9))
         matriz.append(fila)
     return matriz
@@ -25,11 +26,11 @@ def crear_matriz(n):
 
 def multiplicar_matrices(x, y):
     """Multiplicación de matrices sin librerías externas.
-    Optimiza el acceso a memoria usando transpuesta de y.
+    Optimiza el acceso recordando las columnas de y.
     """
     n = len(x)
 
-    # Transponer y para acceder columnas como filas
+    # Transponer y para leer columnas como filas y mejorar el acceso en el bucle.
     y_transpuesta = []
     for j in range(n):
         columna = []
@@ -51,6 +52,7 @@ def multiplicar_matrices(x, y):
 
 
 def calcular_A3(A):
+    # A² = A * A, luego A³ = A² * A
     A2 = multiplicar_matrices(A, A)
     A3 = multiplicar_matrices(A2, A)
     return A3
@@ -61,6 +63,7 @@ def es_primo(numero):
         return False
     divisor = 2
     while divisor * divisor <= numero:
+        # Si es divisible por cualquier divisor menor que sqrt(numero), no es primo
         if numero % divisor == 0:
             return False
         divisor += 1
@@ -68,7 +71,7 @@ def es_primo(numero):
 
 
 def es_perfecto(numero):
-    # Optimizado: iterar hasta sqrt(numero) y sumar pares de divisores
+    # Optimizado: solo recorremos divisores hasta la raíz cuadrada
     if numero <= 1:
         return False
 
@@ -81,6 +84,7 @@ def es_perfecto(numero):
 
             otro_divisor = numero // divisor
             if otro_divisor != divisor:
+                # Sumar el divisor complementario si no es el mismo
                 suma_divisores += otro_divisor
 
         divisor += 1
@@ -89,7 +93,7 @@ def es_perfecto(numero):
 
 
 def es_cuadrado_perfecto(numero):
-    # Optimizado con búsqueda binaria
+    # Optimizado con búsqueda binaria sobre el rango de posibles raíces
     if numero < 0:
         return False
 
@@ -127,6 +131,7 @@ def analizar_matriz(matriz):
         if valor in cache:
             return cache[valor]
 
+        # Calcular propiedades una sola vez por valor repetido
         resultado = {
             "par": valor % 2 == 0,
             "primo": es_primo(valor),
@@ -168,6 +173,7 @@ def contar_repeticiones(matriz):
     frecuencias = {}
     for fila in matriz:
         for valor in fila:
+            # Incrementar el conteo para cada aparición
             frecuencias[valor] = frecuencias.get(valor, 0) + 1
     return frecuencias
 
@@ -176,6 +182,7 @@ def matriz_a_vector(matriz):
     vector = []
     for fila in matriz:
         for valor in fila:
+            # Aplanar la matriz en un vector fila a fila
             vector.append(valor)
     return vector
 
@@ -215,6 +222,7 @@ def merge_sort_ascendente(vector):
 
 
 def ordenar_ascendente(vector):
+    # Elegir inserción para vectores pequeños y merge sort para los grandes
     if len(vector) <= 64:
         return insertion_sort_ascendente(vector)
     return merge_sort_ascendente(vector)
@@ -257,6 +265,7 @@ def buscar_en_matriz(matriz, buscado):
 
 
 def medir_tiempo(funcion, estructura, buscado):
+    # Mide el tiempo en nanosegundos que tarda la búsqueda
     inicio = time.perf_counter_ns()
     encontrado = funcion(estructura, buscado)
     fin = time.perf_counter_ns()
@@ -269,6 +278,7 @@ def medir_tiempo(funcion, estructura, buscado):
 
 
 def arbol_a_ascii(raiz):
+    # Convierte un árbol en una representación ASCII legible
     if raiz is None:
         return "Árbol vacío"
 

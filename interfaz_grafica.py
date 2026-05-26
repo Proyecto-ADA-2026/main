@@ -140,10 +140,12 @@ class App(tk.Tk):
         )
         self.btn_generar.pack(side="left", padx=10)
 
-        ttk.Label(
+        tk.Label(
             top,
             text="(Si n > 20 se mostrará vista previa. Se guarda en .txt.)",
-            foreground="#666666",
+            bg="#f4f6f9",
+            fg="#666666",
+            font=("Segoe UI", 10),
         ).pack(side="left", padx=10)
 
 
@@ -266,12 +268,12 @@ class App(tk.Tk):
         )
         self.txt_arbol.config(state="disabled")
 
-        self.status = ttk.Label(
+        self.status = tk.Label(
             principal,
             text="Estado: esperando datos...",
             anchor="w",
-            background="#e8eef3",
-            foreground="#333333",
+            bg="#e8eef3",
+            fg="#333333",
             font=("Segoe UI", 10, "bold"),
         )
         self.status.pack(fill="x", padx=20, pady=(0, 12), ipady=6)
