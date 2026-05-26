@@ -23,23 +23,32 @@ def crear_matriz(n):
 
 
 def multiplicar_matrices(x, y):
+    """Multiplicación de matrices sin librerías externas.
+    Optimiza el acceso a memoria usando transpuesta de y.
+    """
     n = len(x)
+
+    # Transponer y para acceder columnas como filas
+    y_transpuesta = []
+    for j in range(n):
+        columna = []
+        for i in range(n):
+            columna.append(y[i][j])
+        y_transpuesta.append(columna)
+
     resultado = []
 
     for i in range(n):
         fila_resultado = []
-
-        for j in range(n):
+        for columna_y in y_transpuesta:
             suma = 0
-
-            for k in range(n):
-                suma = suma + x[i][k] * y[k][j]
-
+            for a, b in zip(x[i], columna_y):
+                suma += a * b
             fila_resultado.append(suma)
-
         resultado.append(fila_resultado)
 
     return resultado
+
 
 
 def calcular_A3(A):
@@ -348,6 +357,8 @@ class App(tk.Tk):
         self.A = None
         self.A3 = None
         self.arbol_A = None
+        self.arbol_A3 = None
+
 
         self._configurar_estilos()
         self._build_ui()
@@ -738,16 +749,25 @@ class App(tk.Tk):
             messagebox.showerror("Error", "Ingrese un valor entero para n.")
             return
 
-        # Validación estricta del rango permitido.
-        if n < 4 or n > 12:
+        # Validación de n según enunciado (n >= 4).
+        if n < 4:
             messagebox.showerror(
                 "Error",
-                "El valor de n debe estar estrictamente entre 4 y 12 para garantizar un tiempo de ejecución aceptable."
+                "n debe ser mayor o igual a 4."
             )
             return
 
+        # Si n es grande, avisar (sin bloquear) para evitar que se congele.
+        if n > 20:
+            continuar = messagebox.askyesno(
+                "Advertencia",
+                "El valor de n es grande. Se mostrará una vista previa y los datos completos se guardarán en archivos .txt. ¿Deseas continuar?"
+            )
+            if not continuar:
+                return
 
         self.status.config(text="Estado: generando matriz y calculando A³...")
+
         self.update_idletasks()
 
         try:
@@ -773,6 +793,12 @@ class App(tk.Tk):
                 0,
                 len(vector_A_asc) - 1
             )
+            self.arbol_A3 = construir_arbol_equilibrado(
+                vector_A3_asc,
+                0,
+                len(vector_A3_asc) - 1
+            )
+
 
             self._set_text(self.text_A, self._mat_to_str(self.A))
             self._set_text(self.text_A3, self._mat_to_str(self.A3))
@@ -835,12 +861,13 @@ class App(tk.Tk):
             self.status.config(text="Estado: ocurrió un error al generar la matriz.")
 
     def buscar(self):
-        if self.A is None or self.arbol_A is None:
+        if self.A is None or self.A3 is None or self.arbol_A is None or self.arbol_A3 is None:
             messagebox.showwarning(
                 "Aviso",
                 "Primero genera la matriz A y A³."
             )
             return
+
 
         try:
             buscado = int(self.entry_buscado.get().strip())
@@ -854,19 +881,34 @@ class App(tk.Tk):
         self.status.config(text="Estado: buscando número...")
         self.update_idletasks()
 
-        encontrado_matriz, tiempo_matriz = medir_tiempo(
+        encontrado_matriz_A, tiempo_matriz_A = medir_tiempo(
             buscar_en_matriz,
             self.A,
             buscado
         )
 
-        encontrado_arbol, tiempo_arbol = medir_tiempo(
+        encontrado_arbol_A, tiempo_arbol_A = medir_tiempo(
             buscar_en_arbol,
             self.arbol_A,
             buscado
         )
 
+        encontrado_matriz_A3, tiempo_matriz_A3 = medir_tiempo(
+            buscar_en_matriz,
+            self.A3,
+            buscado
+        )
+
+        encontrado_arbol_A3, tiempo_arbol_A3 = medir_tiempo(
+            buscar_en_arbol,
+            self.arbol_A3,
+            buscado
+        )
+
+
+        # Construcción del mensaje de búsqueda (incluye A y A³ con sus árboles)
         mensaje = (
+
             "\n\nRESULTADOS DE BÚSQUEDA\n"
             "----------------------\n"
             f"Número buscado: {buscado}\n\n"
