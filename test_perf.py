@@ -1,6 +1,6 @@
 import time
 import random
-from interfaz_grafica import (
+from Proyecto_final import (
     crear_matriz,
     calcular_A3,
     matriz_a_vector,
@@ -19,7 +19,7 @@ def medir_accion(nombre, func, *args):
     return res, t1 - t0
 
 
-for n in (8, 200):
+for n in (4, 8, 20, 21, 200):
     print("\n=== Prueba n=", n, "===")
 
     # Generar matriz
