@@ -1,5 +1,36 @@
 ﻿__pycache__/
 *.pyc
-matriz_A.txt
-matriz_A3.txt
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+
+# Configuración local de VS Code
+.vscode/
+
+# Resultados generados por el programa
 resultados/*.txt
+resultados/*.dot
+resultados/*.png
+resultados/*.svg
+resultados/*.pdf
+
+# Archivos temporales de Office o Windows
+~$*
+*.tmp
+*.temp
+
+# Graphviz descargado localmente
+Graphviz*/
+windows_10_cmake_Release_Graphviz*/
+*Graphviz*/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Mantener la carpeta resultados en el repositorio si se desea
+!resultados/.gitkeep
