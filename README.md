@@ -214,6 +214,7 @@ Comando para verificar Graphviz:
 
 ```
 dot -V
+start resultados\arbol_A.png
 ```
 
 Si `dot -V` no funciona, significa que Graphviz no está instalado o no está agregado al PATH.
