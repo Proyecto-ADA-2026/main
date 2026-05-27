@@ -20,6 +20,7 @@ except ImportError:
 from Proyecto_final import (
     crear_matriz,
     calcular_A3,
+    guardar_A3_directo_txt,
     analizar_matriz,
     contar_repeticiones,
     matriz_a_vector,
@@ -430,7 +431,20 @@ class App(tk.Tk):
 
         try:
             self.A = crear_matriz(n)
-            self.A3 = calcular_A3(self.A)
+            
+            # Para n > 100, usar función optimizada para guardar A³ (fila por fila)
+            if n > 100:
+                self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
+                self.status.config(text="Estado: guardando A³ y calculando análisis...")
+                self.update_idletasks()
+                
+                # Calcula y guarda A³ de forma optimizada (fila por fila, sin guardar todo en memoria antes)
+                self.A3 = guardar_A3_directo_txt(self.A, os.path.join("resultados", "matriz_A3.txt"))
+            else:
+                # Para n pequeño, comportamiento normal
+                self.A3 = calcular_A3(self.A)
+                self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
+                self.guardar_matriz_en_txt("matriz_A3.txt", self.A3, "Matriz A³")
 
             analisis_A = analizar_matriz(self.A)
             analisis_A3 = analizar_matriz(self.A3)
@@ -446,10 +460,6 @@ class App(tk.Tk):
 
             self.arbol_A = construir_arbol_equilibrado(vector_A_asc, 0, len(vector_A_asc) - 1)
             self.arbol_A3 = construir_arbol_equilibrado(vector_A3_asc, 0, len(vector_A3_asc) - 1)
-
-            # Guardado obligatorio para matrices grandes (y también siempre si se desea; aquí siempre se guarda)
-            self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
-            self.guardar_matriz_en_txt("matriz_A3.txt", self.A3, "Matriz A³")
 
             # UI: vista previa o matriz completa
             self._set_text(self.text_A, self._mat_to_str(self.A))

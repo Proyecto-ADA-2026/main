@@ -24,6 +24,61 @@ def crear_matriz(n):
     return matriz
 
 
+def guardar_matriz_directo_txt(n, nombre_archivo="matriz.txt"):
+    """Genera una matriz n x n fila por fila y la guarda directamente en TXT.
+    
+    No guarda la matriz completa en memoria. Genera, guarda y descarta cada fila.
+    Útil para matrices grandes (n > 100).
+    """
+    with open(nombre_archivo, "w", encoding="utf-8") as archivo:
+        archivo.write(f"Matriz generada de tamaño {n} x {n}\n")
+        archivo.write("=" * 60 + "\n\n")
+        
+        for i in range(n):
+            fila = []
+            for j in range(n):
+                valor = random.randint(0, 9)
+                fila.append(str(valor))
+            
+            archivo.write("   ".join(f"{v:10}" for v in fila) + "\n")
+            
+            # Mostrar progreso cada 100 filas
+            if i % 100 == 0:
+                print(f"Generando fila {i} de {n}...")
+    
+    print(f"Matriz guardada correctamente en {nombre_archivo}")
+
+
+def guardar_A3_directo_txt(matriz_A, nombre_archivo="matriz_A3.txt"):
+    """Calcula A³ = A² × A y guarda el resultado directamente en TXT.
+    
+    Recibe matriz_A en memoria, calcula A³, y lo guarda fila por fila.
+    Útil para matrices grandes.
+    """
+    n = len(matriz_A)
+    
+    # Calcular A² = A × A
+    A2 = multiplicar_matrices(matriz_A, matriz_A)
+    
+    # Calcular A³ = A² × A
+    A3 = multiplicar_matrices(A2, matriz_A)
+    
+    # Guardar A³ fila por fila
+    with open(nombre_archivo, "w", encoding="utf-8") as archivo:
+        archivo.write(f"Matriz A³ de tamaño {n} x {n}\n")
+        archivo.write("=" * 60 + "\n\n")
+        
+        for i, fila in enumerate(A3):
+            archivo.write("   ".join(f"{v:10}" for v in fila) + "\n")
+            
+            # Mostrar progreso cada 100 filas
+            if i % 100 == 0:
+                print(f"Guardando fila {i} de {n}...")
+    
+    print(f"Matriz A³ guardada correctamente en {nombre_archivo}")
+    return A3
+
+
 def multiplicar_matrices(x, y):
     """Multiplicación de matrices sin librerías externas.
     Optimiza el acceso recordando las columnas de y.
