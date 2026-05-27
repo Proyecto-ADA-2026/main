@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import os
 import subprocess
+import shutil
 
 try:
     import tksheet
@@ -616,7 +617,7 @@ class App(tk.Tk):
         self.status.config(text="Estado: búsqueda completada.")
 
     def generar_imagen_graphviz(self, archivo_dot, archivo_salida):
-        """Convierte un archivo DOT a PNG usando Graphviz y lo abre."""
+        # Reemplazado: ahora se busca el ejecutable 'dot' y se usa su ruta completa
         ruta_dot = os.path.join("resultados", archivo_dot)
         ruta_salida = os.path.join("resultados", archivo_salida)
 
@@ -628,7 +629,7 @@ class App(tk.Tk):
             )
             return
 
-        # Verificar si el árbol es muy grande
+        # Verificar contenido por indicación de árbol grande (si aplica)
         try:
             with open(ruta_dot, "r", encoding="utf-8") as f:
                 contenido = f.read()
@@ -642,31 +643,60 @@ class App(tk.Tk):
         except Exception:
             pass
 
-        # Intentar generar la imagen con Graphviz
-        try:
-            subprocess.run(
-                ["dot", "-Tpng", ruta_dot, "-o", ruta_salida],
-                check=True,
-                capture_output=True
-            )
-            # Si se genera correctamente, abrir la imagen
-            os.startfile(ruta_salida)
-        except FileNotFoundError:
+        # Localizar ejecutable 'dot'
+        dot_exec = self.find_dot_executable()
+        if not dot_exec:
             messagebox.showerror(
                 "Graphviz no encontrado",
-                "Para ver el árbol como imagen debes instalar Graphviz y asegurarte de que "
-                "el comando 'dot' esté disponible en PATH."
+                "Graphviz no está instalado o no está agregado al PATH.\n\n"
+                "Instale Graphviz desde https://graphviz.org/download/ y verifique con:\n"
+                "  dot -V"
             )
+            return
+
+        # Ejecutar Graphviz usando la ruta completa encontrada
+        try:
+            subprocess.run([dot_exec, "-Tpng", ruta_dot, "-o", ruta_salida], check=True, capture_output=True)
+            os.startfile(ruta_salida)
         except subprocess.CalledProcessError as e:
-            messagebox.showerror(
-                "Error al generar imagen",
-                f"No se pudo generar la imagen del árbol.\n{e}"
-            )
+            messagebox.showerror("Error al generar imagen", f"No se pudo generar la imagen del árbol.\n{e}")
         except Exception as e:
-            messagebox.showerror(
-                "Error",
-                f"Ocurrió un error inesperado:\n{e}"
-            )
+            messagebox.showerror("Error", f"Ocurrió un error inesperado:\n{e}")
+
+    def find_dot_executable(self):
+        """Busca el ejecutable 'dot' de Graphviz.
+
+        Busca en:
+        1. PATH (usando shutil.which)
+        2. Rutas comunes de instalación en Program Files
+
+        Retorna la ruta completa a 'dot.exe' o None si no se encuentra.
+        No modifica el sistema.
+        """
+        # 1. Buscar en PATH
+        try:
+            dot = shutil.which("dot")
+            if dot and os.path.exists(dot):
+                return dot
+        except Exception:
+            pass
+
+        # 2. Rutas comunes de instalación en Windows
+        pf = os.environ.get("ProgramFiles", r"C:\Program Files")
+        pfx86 = os.environ.get("ProgramFiles(x86)", r"C:\Program Files (x86)")
+        
+        rutas_comunes = [
+            os.path.join(pf, "Graphviz", "bin", "dot.exe"),
+            os.path.join(pf, "Graphviz-15.0.0", "bin", "dot.exe"),
+            os.path.join(pf, "Graphviz-15.0.0-win32", "bin", "dot.exe"),
+            os.path.join(pfx86, "Graphviz", "bin", "dot.exe"),
+        ]
+        
+        for ruta in rutas_comunes:
+            if os.path.exists(ruta):
+                return ruta
+
+        return None
 
     def guardar_texto_en_archivo(self, nombre_archivo, contenido):
         carpeta_resultados = "resultados"
