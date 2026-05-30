@@ -115,6 +115,69 @@ Matriz A³
 
 También mide los tiempos de ejecución y muestra cuál búsqueda fue más rápida.
 
+## Tipo de árbol seleccionado
+
+En este proyecto se usa un Árbol Binario de Búsqueda Equilibrado de Frecuencias. Se eligió este árbol porque permite representar los elementos de la matriz sin repetir nodos innecesariamente. Cada nodo almacena un diccionario JSON de la forma `{"valor": numero, "cantidad": frecuencia}`, donde `valor` corresponde al número encontrado en la matriz y `cantidad` indica cuántas veces aparece.
+
+La comparación entre nodos se realiza usando únicamente el valor numérico almacenado en `"valor"`. Si el dato buscado es menor que este valor, la búsqueda continúa por el subárbol izquierdo. Si es mayor, continúa por el subárbol derecho. Si es igual, el dato fue encontrado y se retorna el diccionario con su frecuencia.
+
+## Restricciones del sistema
+
+- `n` debe ser mayor o igual a 4.
+- `n` tiene un máximo definido en el programa (por ejemplo `MAX_N = 150`).
+- El límite existe porque calcular `A³` requiere dos multiplicaciones de matrices.
+- La multiplicación de matrices tiene costo `O(n³)`.
+- La matriz `A`, `A²` y `A³` pueden consumir bastante memoria.
+- Para matrices grandes se muestra una vista previa y se guardan archivos TXT.
+- El árbol se construye con valores únicos y frecuencias para reducir nodos repetidos.
+- El sistema mide memoria actual y memoria pico usando herramientas estándar de Python.
+
+## Construcción del árbol binario equilibrado
+
+Para construir el árbol binario de búsqueda equilibrado, primero se pasan los elementos de la matriz a un vector unidimensional. Luego el vector se ordena de forma ascendente usando algoritmos propios. Después se toma el elemento central como raíz del árbol. Los elementos de la mitad izquierda forman el subárbol izquierdo y los elementos de la mitad derecha forman el subárbol derecho. Este proceso se repite recursivamente hasta insertar todos los elementos.
+
+Este procedimiento evita construir el árbol insertando los elementos en el orden original, ya que eso podría generar un árbol desbalanceado o similar a una lista. Al quedar equilibrado, la búsqueda depende de la altura del árbol y se acerca a O(log n), mientras que buscar directamente en la matriz requiere recorrer hasta n² elementos en el peor caso.
+
+## Operaciones soportadas por el árbol
+
+- Construcción del árbol equilibrado desde diccionarios JSON ordenados.
+- Búsqueda de un valor y retorno del diccionario JSON con su frecuencia.
+- Retorno de la cantidad de repeticiones.
+- Recorrido inorden.
+- Cálculo de altura.
+- Conteo de nodos.
+- Exportación a archivo DOT para visualización.
+
+## Análisis de memoria
+
+La memoria depende principalmente de:
+
+- la matriz `A`,
+- la matriz `A²` durante el cálculo,
+- la matriz `A³`,
+- los vectores generados,
+- los diccionarios JSON de frecuencia,
+- los nodos del árbol (cada uno almacena un diccionario).
+
+El árbol de frecuencias usa menos nodos que un árbol con todos los elementos repetidos, porque si un número aparece muchas veces solo se crea un nodo y se almacena su cantidad en el diccionario `{"valor": numero, "cantidad": frecuencia}`.
+
+## Análisis de costos principales
+
+| Operación | Costo |
+|---|---|
+| Generar matriz A | O(n²) |
+| Mostrar matriz A | O(n²) |
+| Multiplicar dos matrices | O(n³) |
+| Calcular A³ | O(n³) |
+| Analizar pares, impares, primos, perfectos y cuadrados perfectos | O(n²) |
+| Pasar matriz a vector | O(n²) |
+| Ordenar vector con insertion sort | O(m²), donde m = n² |
+| Ordenar vector con merge sort | O(m log m), donde m = n² |
+| Contar repeticiones | O(n²) |
+| Construir árbol equilibrado desde vector ordenado | O(m), donde m = n² |
+| Buscar en matriz | O(n²) |
+| Buscar en árbol equilibrado | O(log m), donde m = n² |
+
 Archivos generados
 
 El programa crea automáticamente una carpeta llamada:

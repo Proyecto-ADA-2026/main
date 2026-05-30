@@ -5,7 +5,9 @@ Contiene todos los algoritmos y estructuras de datos del taller.
 """
 
 import random
+import sys
 import time
+import tracemalloc
 
 
 # =========================================================
@@ -98,8 +100,8 @@ def multiplicar_matrices(x, y):
         fila_resultado = []
         for columna_y in y_transpuesta:
             suma = 0
-            for a, b in zip(x[i], columna_y):
-                suma += a * b
+            for k in range(n):
+                suma += x[i][k] * columna_y[k]
             fila_resultado.append(suma)
         resultado.append(fila_resultado)
 
@@ -111,6 +113,26 @@ def calcular_A3(A):
     A2 = multiplicar_matrices(A, A)
     A3 = multiplicar_matrices(A2, A)
     return A3
+
+
+def estimar_memoria_matriz(n):
+    # Estimación aproximada de memoria usada por la matriz A.
+    # Se usa 28 bytes por entero como valor de referencia simple para Python,
+    # sin contar la sobrecarga completa de listas y objetos adicionales.
+    return n * n * 28
+
+
+def iniciar_medicion_memoria():
+    tracemalloc.start()
+
+
+def obtener_memoria_actual_y_pico():
+    actual, pico = tracemalloc.get_traced_memory()
+    return actual, pico
+
+
+def detener_medicion_memoria():
+    tracemalloc.stop()
 
 
 def es_primo(numero):
@@ -229,8 +251,54 @@ def contar_repeticiones(matriz):
     for fila in matriz:
         for valor in fila:
             # Incrementar el conteo para cada aparición
-            frecuencias[valor] = frecuencias.get(valor, 0) + 1
+            if valor in frecuencias:
+                frecuencias[valor] += 1
+            else:
+                frecuencias[valor] = 1
     return frecuencias
+
+
+def buscar_y_contar_en_matriz(matriz, buscado):
+    encontrado = False
+    cantidad = 0
+    for fila in matriz:
+        for valor in fila:
+            if valor == buscado:
+                encontrado = True
+                cantidad += 1
+    return encontrado, cantidad
+
+
+def frecuencias_a_json_ordenado(frecuencias):
+    claves = []
+    for clave in frecuencias:
+        claves.append(clave)
+
+    claves_ordenadas = ordenar_ascendente(list(claves))
+
+    lista_json = []
+    for clave in claves_ordenadas:
+        dato = {
+            "valor": clave,
+            "cantidad": frecuencias[clave]
+        }
+        lista_json.append(dato)
+
+    return lista_json
+
+
+def frecuencias_a_tuplas_ordenadas(frecuencias):
+    claves = []
+    for clave in frecuencias:
+        claves.append(clave)
+
+    claves_ordenadas = ordenar_ascendente(list(claves))
+
+    tuplas = []
+    for clave in claves_ordenadas:
+        tuplas.append((clave, frecuencias[clave]))
+
+    return tuplas
 
 
 def matriz_a_vector(matriz):
@@ -253,6 +321,13 @@ def insertion_sort_ascendente(vector):
     return vector
 
 
+def invertir_vector(vector):
+    invertido = []
+    for i in range(len(vector) - 1, -1, -1):
+        invertido.append(vector[i])
+    return invertido
+
+
 def merge_sort_ascendente(vector):
     if len(vector) <= 1:
         return vector
@@ -271,8 +346,13 @@ def merge_sort_ascendente(vector):
             resultado.append(derecha[j])
             j += 1
 
-    resultado.extend(izquierda[i:])
-    resultado.extend(derecha[j:])
+    while i < len(izquierda):
+        resultado.append(izquierda[i])
+        i += 1
+
+    while j < len(derecha):
+        resultado.append(derecha[j])
+        j += 1
     return resultado
 
 
@@ -283,6 +363,23 @@ def ordenar_ascendente(vector):
     return merge_sort_ascendente(vector)
 
 
+class NodoJSON:
+    def __init__(self, valor, cantidad):
+        self.dato = {
+            "valor": valor,
+            "cantidad": cantidad
+        }
+        self.izquierda = None
+        self.derecha = None
+
+
+class NodoFrecuencia:
+    def __init__(self, valor, cantidad):
+        self.dato = (valor, cantidad)
+        self.izquierda = None
+        self.derecha = None
+
+
 class Nodo:
     def __init__(self, valor):
         self.valor = valor
@@ -290,7 +387,50 @@ class Nodo:
         self.derecha = None
 
 
+def construir_arbol_json_equilibrado(lista_json, inicio, fin):
+    # Construye un árbol binario de búsqueda equilibrado desde una lista JSON ordenada.
+    # La lista JSON ya está ordenada por valor.
+    # Se toma el elemento central como raíz.
+    # La mitad izquierda forma el subárbol izquierdo.
+    # La mitad derecha forma el subárbol derecho.
+    # Este proceso se repite recursivamente.
+    # Así el árbol queda equilibrado o lo más equilibrado posible.
+    if inicio > fin:
+        return None
+
+    mitad = (inicio + fin) // 2
+    valor = lista_json[mitad]["valor"]
+    cantidad = lista_json[mitad]["cantidad"]
+
+    raiz = NodoJSON(valor, cantidad)
+    raiz.izquierda = construir_arbol_json_equilibrado(lista_json, inicio, mitad - 1)
+    raiz.derecha = construir_arbol_json_equilibrado(lista_json, mitad + 1, fin)
+
+    return raiz
+
+
+def construir_arbol_frecuencias_equilibrado(tuplas, inicio, fin):
+    if inicio > fin:
+        return None
+
+    mitad = (inicio + fin) // 2
+    valor = tuplas[mitad][0]
+    cantidad = tuplas[mitad][1]
+
+    raiz = NodoFrecuencia(valor, cantidad)
+    raiz.izquierda = construir_arbol_frecuencias_equilibrado(tuplas, inicio, mitad - 1)
+    raiz.derecha = construir_arbol_frecuencias_equilibrado(tuplas, mitad + 1, fin)
+    return raiz
+
+
 def construir_arbol_equilibrado(vector, inicio, fin):
+    # Construye un árbol binario de búsqueda equilibrado a partir de un vector ordenado.
+    # Primero se ordena el vector de elementos.
+    # Luego se toma el elemento central como raíz.
+    # La mitad izquierda forma el subárbol izquierdo.
+    # La mitad derecha forma el subárbol derecho.
+    # Este proceso se repite recursivamente para cada subvector.
+    # De esta forma se evita que el árbol quede como una cadena lineal.
     if inicio > fin:
         return None
 
@@ -304,11 +444,93 @@ def construir_arbol_equilibrado(vector, inicio, fin):
 def buscar_en_arbol(raiz, buscado):
     if raiz is None:
         return False
-    if buscado == raiz.valor:
+
+    valor_nodo = raiz.valor if hasattr(raiz, 'valor') else raiz.dato[0]
+
+    if buscado == valor_nodo:
         return True
-    if buscado < raiz.valor:
+    if buscado < valor_nodo:
         return buscar_en_arbol(raiz.izquierda, buscado)
     return buscar_en_arbol(raiz.derecha, buscado)
+
+
+def buscar_en_arbol_json(raiz, buscado):
+    if raiz is None:
+        return None
+
+    valor_nodo = raiz.dato["valor"]
+    if buscado == valor_nodo:
+        return raiz.dato
+    if buscado < valor_nodo:
+        return buscar_en_arbol_json(raiz.izquierda, buscado)
+    return buscar_en_arbol_json(raiz.derecha, buscado)
+
+
+def contar_nodos_arbol_json(raiz):
+    if raiz is None:
+        return 0
+    return 1 + contar_nodos_arbol_json(raiz.izquierda) + contar_nodos_arbol_json(raiz.derecha)
+
+
+def altura_arbol_json(raiz):
+    if raiz is None:
+        return 0
+
+    altura_izquierda = altura_arbol_json(raiz.izquierda)
+    altura_derecha = altura_arbol_json(raiz.derecha)
+
+    if altura_izquierda > altura_derecha:
+        return altura_izquierda + 1
+
+    return altura_derecha + 1
+
+
+def recorrido_inorden_json(raiz):
+    resultado = []
+
+    def recorrer(nodo):
+        if nodo is not None:
+            recorrer(nodo.izquierda)
+            resultado.append(nodo.dato)
+            recorrer(nodo.derecha)
+
+    recorrer(raiz)
+    return resultado
+
+
+def buscar_en_arbol_frecuencias(raiz, buscado):
+    if raiz is None:
+        return None
+
+    valor_nodo = raiz.dato[0]
+    if buscado == valor_nodo:
+        return raiz.dato
+    if buscado < valor_nodo:
+        return buscar_en_arbol_frecuencias(raiz.izquierda, buscado)
+    return buscar_en_arbol_frecuencias(raiz.derecha, buscado)
+
+
+def contar_nodos_arbol_frecuencias(raiz):
+    if raiz is None:
+        return 0
+    return 1 + contar_nodos_arbol_frecuencias(raiz.izquierda) + contar_nodos_arbol_frecuencias(raiz.derecha)
+
+
+def altura_arbol(raiz):
+    if raiz is None:
+        return 0
+    altura_izq = altura_arbol(raiz.izquierda)
+    altura_der = altura_arbol(raiz.derecha)
+    return 1 + (altura_izq if altura_izq >= altura_der else altura_der)
+
+
+def recorrido_inorden_frecuencias(raiz):
+    resultado = []
+    if raiz is not None:
+        resultado.extend(recorrido_inorden_frecuencias(raiz.izquierda))
+        resultado.append(raiz.dato)
+        resultado.extend(recorrido_inorden_frecuencias(raiz.derecha))
+    return resultado
 
 
 def buscar_en_matriz(matriz, buscado):
@@ -339,7 +561,7 @@ def arbol_a_ascii(raiz):
 
     def display_aux(nodo):
         if nodo.izquierda is None and nodo.derecha is None:
-            linea = str(nodo.valor)
+            linea = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
             ancho = len(linea)
             alto = 1
             centro = ancho // 2
@@ -347,7 +569,7 @@ def arbol_a_ascii(raiz):
 
         if nodo.derecha is None:
             lineas, ancho, alto, centro = display_aux(nodo.izquierda)
-            valor = str(nodo.valor)
+            valor = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
             ancho_valor = len(valor)
 
             primera = (
@@ -373,7 +595,7 @@ def arbol_a_ascii(raiz):
 
         if nodo.izquierda is None:
             lineas, ancho, alto, centro = display_aux(nodo.derecha)
-            valor = str(nodo.valor)
+            valor = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
             ancho_valor = len(valor)
 
             primera = (
@@ -400,7 +622,7 @@ def arbol_a_ascii(raiz):
         izquierda, ancho_izq, alto_izq, centro_izq = display_aux(nodo.izquierda)
         derecha, ancho_der, alto_der, centro_der = display_aux(nodo.derecha)
 
-        valor = str(nodo.valor)
+        valor = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
         ancho_valor = len(valor)
 
         primera = (
@@ -460,7 +682,17 @@ def exportar_arbol_dot(raiz, nombre_grafo="Arbol"):
         id_actual = contador[0]
         contador[0] += 1
 
-        lineas.append(f'    nodo{id_actual} [label="{nodo.valor}"];')
+        if hasattr(nodo, 'dato'):
+            if isinstance(nodo.dato, dict):
+                # Formato JSON: {"valor": num, "cantidad": freq}
+                label = f"{nodo.dato['valor']} | cant: {nodo.dato['cantidad']}"
+            else:
+                # Formato tupla antiguo: (valor, cantidad)
+                label = f"{nodo.dato[0]} | cant: {nodo.dato[1]}"
+        else:
+            label = str(nodo.valor)
+
+        lineas.append(f'    nodo{id_actual} [label="{label}"];')
 
         id_izq = recorrer(nodo.izquierda)
         if id_izq is not None:

@@ -4,6 +4,8 @@ import os
 import subprocess
 import shutil
 
+MAX_N = 150
+
 try:
     import tksheet
     TKSHEET_DISPONIBLE = True
@@ -23,14 +25,23 @@ from Proyecto_final import (
     guardar_A3_directo_txt,
     analizar_matriz,
     contar_repeticiones,
+    frecuencias_a_json_ordenado,
     matriz_a_vector,
     ordenar_ascendente,
-    construir_arbol_equilibrado,
-    buscar_en_matriz,
-    buscar_en_arbol,
+    invertir_vector,
+    construir_arbol_json_equilibrado,
+    buscar_y_contar_en_matriz,
+    buscar_en_arbol_json,
     medir_tiempo,
     arbol_a_ascii,
     exportar_arbol_dot,
+    iniciar_medicion_memoria,
+    obtener_memoria_actual_y_pico,
+    detener_medicion_memoria,
+    estimar_memoria_matriz,
+    contar_nodos_arbol_json,
+    altura_arbol_json,
+    recorrido_inorden_json,
 )
 
 
@@ -418,6 +429,13 @@ class App(tk.Tk):
             messagebox.showerror("Error", "n debe ser mayor o igual a 4.")
             return
 
+        if n > MAX_N:
+            messagebox.showerror(
+                "Error",
+                "El valor de n supera el límite permitido. Este límite existe porque el cálculo de A³ requiere multiplicación de matrices con costo O(n³) y puede consumir demasiada memoria RAM.",
+            )
+            return
+
         if n > 20:
             continuar = messagebox.askyesno(
                 "Advertencia",
@@ -430,6 +448,7 @@ class App(tk.Tk):
         self.update_idletasks()
 
         try:
+            iniciar_medicion_memoria()
             self.A = crear_matriz(n)
             
             # Para n > 100, usar función optimizada para guardar A³ (fila por fila)
@@ -452,35 +471,42 @@ class App(tk.Tk):
             rep_A = contar_repeticiones(self.A)
             rep_A3 = contar_repeticiones(self.A3)
 
+            rep_A = contar_repeticiones(self.A)
+            lista_json_A = frecuencias_a_json_ordenado(rep_A)
+            self.arbol_A = construir_arbol_json_equilibrado(lista_json_A, 0, len(lista_json_A) - 1)
+
+            rep_A3 = contar_repeticiones(self.A3)
+            lista_json_A3 = frecuencias_a_json_ordenado(rep_A3)
+            self.arbol_A3 = construir_arbol_json_equilibrado(lista_json_A3, 0, len(lista_json_A3) - 1)
+
             vector_A = matriz_a_vector(self.A)
             vector_A3 = matriz_a_vector(self.A3)
 
             vector_A_asc = ordenar_ascendente(list(vector_A))
             vector_A3_asc = ordenar_ascendente(list(vector_A3))
-
-            self.arbol_A = construir_arbol_equilibrado(vector_A_asc, 0, len(vector_A_asc) - 1)
-            self.arbol_A3 = construir_arbol_equilibrado(vector_A3_asc, 0, len(vector_A3_asc) - 1)
+            vector_A_desc = invertir_vector(vector_A_asc)
+            vector_A3_desc = invertir_vector(vector_A3_asc)
 
             # UI: vista previa o matriz completa
             self._set_text(self.text_A, self._mat_to_str(self.A))
             self._set_text(self.text_A3, self._mat_to_str(self.A3))
 
-            # Mostrar ASCII del árbol solo si el vector ordenado no es demasiado grande
-            if len(vector_A_asc) <= 63:
+            # Mostrar ASCII del árbol solo si el árbol JSON no es demasiado grande
+            if len(lista_json_A) <= 63:
                 ascii_arbol_A = arbol_a_ascii(self.arbol_A)
             else:
                 ascii_arbol_A = (
                     "Árbol A generado correctamente.\n"
-                    f"No se muestra porque tiene {len(vector_A_asc)} nodos.\n"
+                    f"No se muestra porque tiene {len(lista_json_A)} nodos.\n"
                     "La búsqueda en árbol sigue funcionando normalmente."
                 )
 
-            if len(vector_A3_asc) <= 63:
+            if len(lista_json_A3) <= 63:
                 ascii_arbol_A3 = arbol_a_ascii(self.arbol_A3)
             else:
                 ascii_arbol_A3 = (
                     "Árbol A³ generado correctamente.\n"
-                    f"No se muestra porque tiene {len(vector_A3_asc)} nodos.\n"
+                    f"No se muestra porque tiene {len(lista_json_A3)} nodos.\n"
                     "La búsqueda en árbol sigue funcionando normalmente."
                 )
 
@@ -488,6 +514,10 @@ class App(tk.Tk):
                 self.txt_arbol,
                 "ARBOL A:\n" + ascii_arbol_A + "\n\nARBOL A³:\n" + ascii_arbol_A3,
             )
+
+            mem_actual, mem_pico = obtener_memoria_actual_y_pico()
+            detener_medicion_memoria()
+            estimacion_A = estimar_memoria_matriz(n)
 
             def resumen_analisis(nombre, analisis):
                 return (
@@ -530,10 +560,22 @@ class App(tk.Tk):
             texto_A = str(vector_A_asc)
             salida.append(texto_A[:1200] + ("..." if len(texto_A) > 1200 else ""))
 
+            salida.append("\n\nA descendente:\n")
+            texto_A_desc = str(vector_A_desc)
+            salida.append(texto_A_desc[:1200] + ("..." if len(texto_A_desc) > 1200 else ""))
+
             salida.append("\n\nA³ ascendente:\n")
             texto_A3 = str(vector_A3_asc)
             salida.append(texto_A3[:1200] + ("..." if len(texto_A3) > 1200 else ""))
 
+            salida.append("\n\nA³ descendente:\n")
+            texto_A3_desc = str(vector_A3_desc)
+            salida.append(texto_A3_desc[:1200] + ("..." if len(texto_A3_desc) > 1200 else ""))
+            salida.append("\n\nMEMORIA\n")
+            salida.append("------\n")
+            salida.append(f"Estimación A: {estimacion_A} bytes\n")
+            salida.append(f"Memoria actual: {mem_actual // 1024} KB\n")
+            salida.append(f"Memoria pico: {mem_pico // 1024} KB\n")
             self._set_text(self.txt_result, "".join(salida))
 
             if n > 20:
@@ -591,36 +633,28 @@ class App(tk.Tk):
         self.status.config(text="Estado: buscando número...")
         self.update_idletasks()
 
-        encontrado_matriz_A, tiempo_matriz_A = medir_tiempo(buscar_en_matriz, self.A, buscado)
-        encontrado_arbol_A, tiempo_arbol_A = medir_tiempo(buscar_en_arbol, self.arbol_A, buscado)
+        resultado_matriz_A, tiempo_matriz_A = medir_tiempo(buscar_y_contar_en_matriz, self.A, buscado)
+        encontrado_matriz_A, cantidad_matriz_A = resultado_matriz_A
+        resultado_arbol_A, tiempo_arbol_A = medir_tiempo(buscar_en_arbol_json, self.arbol_A, buscado)
 
-        encontrado_matriz_A3, tiempo_matriz_A3 = medir_tiempo(buscar_en_matriz, self.A3, buscado)
-        encontrado_arbol_A3, tiempo_arbol_A3 = medir_tiempo(buscar_en_arbol, self.arbol_A3, buscado)
+        resultado_matriz_A3, tiempo_matriz_A3 = medir_tiempo(buscar_y_contar_en_matriz, self.A3, buscado)
+        encontrado_matriz_A3, cantidad_matriz_A3 = resultado_matriz_A3
+        resultado_arbol_A3, tiempo_arbol_A3 = medir_tiempo(buscar_en_arbol_json, self.arbol_A3, buscado)
 
-        # Comparación simple de tiempos
-        # (si empatan, se reporta como empate)
-        if tiempo_matriz_A <= tiempo_arbol_A:
-            mas_rapida_A = "Matriz A" if tiempo_matriz_A < tiempo_arbol_A else "Empate (Matriz A y Árbol A)"
-        else:
-            mas_rapida_A = "Árbol A"
-
-        if tiempo_matriz_A3 <= tiempo_arbol_A3:
-            mas_rapida_A3 = "Matriz A³" if tiempo_matriz_A3 < tiempo_arbol_A3 else "Empate (Matriz A³ y Árbol A³)"
-        else:
-            mas_rapida_A3 = "Árbol A³"
+        cantidad_arbol_A = resultado_arbol_A["cantidad"] if resultado_arbol_A is not None else 0
+        cantidad_arbol_A3 = resultado_arbol_A3["cantidad"] if resultado_arbol_A3 is not None else 0
 
         mensaje = (
-            "\n\nRESULTADOS DE BÚSQUEDA\n"
-            "----------------------\n"
-            f"Número buscado: {buscado}\n\n"
-            "[A]\n"
-            f"Matriz A: {'Sí' if encontrado_matriz_A else 'No'} - Tiempo: {tiempo_matriz_A} ns\n"
-            f"Árbol A:  {'Sí' if encontrado_arbol_A else 'No'} - Tiempo: {tiempo_arbol_A} ns\n"
-            f"Más rápida para A: {mas_rapida_A}\n\n"
-            "[A³]\n"
-            f"Matriz A³: {'Sí' if encontrado_matriz_A3 else 'No'} - Tiempo: {tiempo_matriz_A3} ns\n"
-            f"Árbol A³:  {'Sí' if encontrado_arbol_A3 else 'No'} - Tiempo: {tiempo_arbol_A3} ns\n"
-            f"Más rápida para A³: {mas_rapida_A3}\n"
+            "\n\nBÚSQUEDA DEL VALOR " + str(buscado) + "\n"
+            "-------------------\n"
+            "Matriz A:\n"
+            f"En matriz: {'encontrado' if encontrado_matriz_A else 'no encontrado'}, cantidad: {cantidad_matriz_A}, tiempo: {tiempo_matriz_A} ns\n"
+            f"En árbol JSON: {'encontrado' if resultado_arbol_A is not None else 'no encontrado'}, cantidad: {cantidad_arbol_A}, tiempo: {tiempo_arbol_A} ns\n"
+            f"Más rápido: {'árbol JSON' if tiempo_arbol_A < tiempo_matriz_A else ('matriz' if tiempo_matriz_A < tiempo_arbol_A else 'empate')}\n\n"
+            "Matriz A³:\n"
+            f"En matriz: {'encontrado' if encontrado_matriz_A3 else 'no encontrado'}, cantidad: {cantidad_matriz_A3}, tiempo: {tiempo_matriz_A3} ns\n"
+            f"En árbol JSON: {'encontrado' if resultado_arbol_A3 is not None else 'no encontrado'}, cantidad: {cantidad_arbol_A3}, tiempo: {tiempo_arbol_A3} ns\n"
+            f"Más rápido: {'árbol JSON' if tiempo_arbol_A3 < tiempo_matriz_A3 else ('matriz' if tiempo_matriz_A3 < tiempo_arbol_A3 else 'empate')}\n"
         )
 
         self._append_text(self.txt_result, mensaje)
