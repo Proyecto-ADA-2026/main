@@ -4,20 +4,9 @@ Lógica algorítmica / backend del proyecto (sin GUI).
 Contiene todos los algoritmos y estructuras de datos del taller.
 """
 
-# random permite generar números aleatorios.
-# En este proyecto se usa para llenar la matriz A con valores entre 0 y 9.
 import random
-
-# sys es una librería estándar útil para estimar tamaños de objetos en memoria si se requiere.
-# No reemplaza ningún algoritmo; solo puede apoyar el análisis de memoria.
 import sys
-
-# time permite medir tiempos de ejecución.
-# En este proyecto se usa para comparar la búsqueda en matriz y la búsqueda en árbol.
 import time
-
-# tracemalloc permite medir memoria actual y memoria pico usada por el programa.
-# Sirve para justificar restricciones de tamaño y evitar que el sistema colapse.
 import tracemalloc
 
 
@@ -27,23 +16,6 @@ import tracemalloc
 
 
 def crear_matriz(n):
-    """
-    Crea una matriz cuadrada de tamaño n x n con valores aleatorios entre 0 y 9.
-    
-    Entrada:
-        n: Tamaño de la matriz (número de filas y columnas).
-    
-    Retorna:
-        Una matriz representada como lista de listas, donde cada elemento es
-        un número entero aleatorio en el rango [0, 9].
-    
-    Relación con el proyecto:
-        Cumple el punto 1 del enunciado: construir una matriz n x n con valores
-        aleatorios y realizar operaciones sobre ella.
-    
-    Costo:
-        O(n²) - recorre n filas y n columnas para llenar cada posición.
-    """
     matriz = []
     for _ in range(n):
         fila = []
@@ -55,28 +27,55 @@ def crear_matriz(n):
 
 
 def guardar_matriz_directo_txt(n, nombre_archivo="matriz.txt"):
-    """Genera una matriz n x n fila por fila y la guarda directamente en TXT.
-    
-    No guarda la matriz completa en memoria. Genera, guarda y descarta cada fila.
-    Útil para matrices grandes (n > 100).
-    """
-    with open(nombre_archivo, "w", encoding="utf-8") as archivo:
-        archivo.write(f"Matriz generada de tamaño {n} x {n}\n")
-        archivo.write("=" * 60 + "\n\n")
-        
-        for i in range(n):
-            fila = []
-            for j in range(n):
-                valor = random.randint(0, 9)
-                fila.append(str(valor))
-            
-            archivo.write("   ".join(f"{v:10}" for v in fila) + "\n")
-            
-            # Mostrar progreso cada 100 filas
-            if i % 100 == 0:
-                print(f"Generando fila {i} de {n}...")
-    
-    print(f"Matriz guardada correctamente en {nombre_archivo}")
+    """Genera una matriz fila por fila y la escribe en un archivo TXT sin guardarla completa en memoria."""
+    with open(nombre_archivo, "w", encoding="utf-8") as archivo: # Abre el archivo en modo escritura con codificación UTF-8.
+        archivo.write("Matriz generada de tamaño " + str(n) + " x " + str(n) + "\n") # Escribe el encabezado con el tamaño.
+        linea_separadora = ""                                  # Inicializa un string vacío para la línea divisoria.
+        for _ in range(60):                                    # Itera 60 veces para construir la línea de caracteres.
+            linea_separadora += "="                            # Concatena un carácter '=' en cada ciclo.
+        archivo.write(linea_separadora + "\n\n")               # Escribe la línea divisoria seguida de dos saltos de línea.
+        for i in range(n):                                     # Itera n veces para generar cada una de las filas.
+            fila = []                                          # Inicializa la fila de texto como lista vacía.
+            for j in range(n):                                 # Itera n veces para rellenar las columnas de la fila actual.
+                valor = random.randint(0, 9)                   # Genera un número entero aleatorio entre 0 y 9.
+                fila = fila + [str(valor)]                     # Agrega el valor en formato texto a la lista de la fila.
+            linea_texto = ""                                   # Inicializa el string que representará la línea de la fila.
+            for k in range(len(fila)):                         # Recorre cada elemento de la fila.
+                formateado = ""                                # Inicializa el texto formateado.
+                num_str = fila[k]                              # Obtiene el string numérico.
+                espacios = 10 - len(num_str)                   # Calcula los espacios necesarios para un ancho fijo de 10.
+                formateado += num_str                          # Agrega el número al formateado.
+                for _ in range(espacios):                      # Agrega los espacios calculados uno por uno.
+                    formateado += " "                          # Agrega un espacio en blanco.
+                linea_texto += formateado                      # Concatena el elemento formateado a la línea.
+                if k < len(fila) - 1:                          # Si no es el último elemento, añade separación adicional.
+                   linea_texto += "   "                        # Agrega tres espacios como separador de columna.
+            archivo.write(linea_texto + "\n")                  # Escribe la línea formateada en el archivo.
+            if i % 100 == 0:                                   # Mide si la fila actual es múltiplo de 100 para dar feedback.
+                print("Generando fila " + str(i) + " de " + str(n) + "...") # Muestra en consola el progreso de la generación.
+    print("Matriz guardada correctamente en " + str(nombre_archivo)) # Imprime mensaje final en consola al finalizar.
+
+
+def multiplicar_matrices(x, y):
+    """Realiza la multiplicación de dos matrices n x n sin usar librerías externas ni .append()."""
+    n = len(x)                                                 # Obtiene la dimensión n de las matrices cuadradas.
+    y_transpuesta = []                                         # Inicializa la matriz transpuesta de y como lista vacía.
+    for j in range(n):                                         # Itera por cada columna de la matriz y.
+        columna = []                                           # Inicializa una lista vacía para almacenar la columna.
+        for i in range(n):                                     # Itera por cada fila de la matriz y.
+            columna = columna + [y[i][j]]                      # Agrega el elemento de la columna a la lista por concatenación.
+        y_transpuesta = y_transpuesta + [columna]              # Agrega la columna transpuesta a la matriz de transpuestas.
+    resultado = []                                             # Inicializa la matriz de resultados como lista vacía.
+    for i in range(n):                                         # Itera por cada fila de la matriz x.
+        fila_resultado = []                                    # Inicializa la fila del resultado de la iteración actual.
+        for j in range(n):                                     # Itera por cada columna transpuesta de y (que ahora son filas).
+            columna_y = y_transpuesta[j]                       # Obtiene la columna transpuesta correspondiente.
+            suma = 0                                           # Inicializa el acumulador de la multiplicación elemento a elemento.
+            for k in range(n):                                 # Itera por los elementos de la fila y la columna.
+                suma += x[i][k] * columna_y[k]                 # Multiplica los elementos y acumula el resultado en suma.
+            fila_resultado = fila_resultado + [suma]           # Agrega la suma acumulada a la fila resultado.
+        resultado = resultado + [fila_resultado]               # Agrega la fila completada a la matriz resultado final.
+    return resultado                                           # Retorna la matriz de resultados de la multiplicación.
 
 
 def guardar_A3_directo_txt(matriz_A, nombre_archivo="matriz_A3.txt"):
@@ -110,25 +109,8 @@ def guardar_A3_directo_txt(matriz_A, nombre_archivo="matriz_A3.txt"):
 
 
 def multiplicar_matrices(x, y):
-    """
-    Multiplica dos matrices cuadradas x e y sin usar librerías externas.
-    
-    Implementación manual que transpone y para optimizar el acceso a columnas,
-    evitando búsquedas repetidas en la estructura de datos.
-    
-    Entrada:
-        x: Primera matriz (lista de listas).
-        y: Segunda matriz (lista de listas).
-    
-    Retorna:
-        Matriz resultado de la multiplicación x × y.
-    
-    Relación con el proyecto:
-        Utilizado para calcular A² y A³ requeridas en el proyecto.
-    
-    Costo:
-        O(n³) - tres bucles anidados recorren todas las posiciones.
-        Este es el cuello de botella del proyecto, justificando el límite MAX_N.
+    """Multiplicación de matrices sin librerías externas.
+    Optimiza el acceso recordando las columnas de y.
     """
     n = len(x)
 
@@ -154,21 +136,6 @@ def multiplicar_matrices(x, y):
 
 
 def calcular_A3(A):
-    """
-    Calcula A³ mediante dos multiplicaciones de matrices: A² = A × A, A³ = A² × A.
-    
-    Entrada:
-        A: Matriz cuadrada de tamaño n x n.
-    
-    Retorna:
-        Matriz A³, donde A³[i][j] = suma de A²[i][k] × A[k][j] para todo k.
-    
-    Relación con el proyecto:
-        Cumple el punto 1 del enunciado sobre calcular A³.
-    
-    Costo:
-        O(n³) + O(n³) = O(n³) - dos multiplicaciones secuenciales.
-    """
     # A² = A * A, luego A³ = A² * A
     A2 = multiplicar_matrices(A, A)
     A3 = multiplicar_matrices(A2, A)
@@ -176,21 +143,6 @@ def calcular_A3(A):
 
 
 def estimar_memoria_matriz(n):
-    """
-    Estima de forma aproximada la memoria ocupada por una matriz n x n.
-    
-    Entrada:
-    n: tamaño de la matriz.
-    
-    Retorna:
-    Cantidad aproximada de bytes usados por los enteros de la matriz.
-    
-    Relación con el proyecto:
-    Ayuda a justificar límites de tamaño para evitar consumo excesivo de RAM.
-    
-    Costo:
-    O(1), porque solo realiza una operación aritmética.
-    """
     # Estimación aproximada de memoria usada por la matriz A.
     # Se usa 28 bytes por entero como valor de referencia simple para Python,
     # sin contar la sobrecarga completa de listas y objetos adicionales.
@@ -198,79 +150,19 @@ def estimar_memoria_matriz(n):
 
 
 def iniciar_medicion_memoria():
-    """
-    Inicia la medición de memoria con tracemalloc.
-    
-    Entrada:
-    No recibe parámetros.
-    
-    Retorna:
-    No retorna valor.
-    
-    Relación con el proyecto:
-    Permite medir memoria durante la generación, análisis y construcción del árbol.
-    
-    Costo:
-    O(1).
-    """
     tracemalloc.start()
 
 
 def obtener_memoria_actual_y_pico():
-    """
-    Obtiene la memoria actual y la memoria pico registrada por tracemalloc.
-    
-    Entrada:
-    No recibe parámetros.
-    
-    Retorna:
-    Una tupla con memoria actual y memoria pico en bytes.
-    
-    Relación con el proyecto:
-    Permite mostrar cuánta RAM se usa y cuál fue el máximo alcanzado.
-    
-    Costo:
-    O(1).
-    """
     actual, pico = tracemalloc.get_traced_memory()
     return actual, pico
 
 
 def detener_medicion_memoria():
-    """
-    Detiene la medición de memoria iniciada con tracemalloc.
-    
-    Entrada:
-    No recibe parámetros.
-    
-    Retorna:
-    No retorna valor.
-    
-    Relación con el proyecto:
-    Finaliza el monitoreo de memoria después de generar los resultados.
-    
-    Costo:
-    O(1).
-    """
     tracemalloc.stop()
 
 
 def es_primo(numero):
-    """
-    Verifica si un número es primo iterando desde 2 hasta sqrt(número).
-    
-    Entrada:
-        numero: Número entero a verificar.
-    
-    Retorna:
-        True si el número es primo, False en caso contrario.
-    
-    Relación con el proyecto:
-        Utilizado en analizar_matriz para contar números primos.
-    
-    Costo:
-        O(√n) - itera hasta la raíz cuadrada del número.
-    """
     if numero < 2:
         return False
     divisor = 2
@@ -283,24 +175,6 @@ def es_primo(numero):
 
 
 def es_perfecto(numero):
-    """
-    Verifica si un número es perfecto.
-    
-    Un número perfecto es igual a la suma de sus divisores propios.
-    Por ejemplo, 6 es perfecto porque 1 + 2 + 3 = 6.
-    
-    Entrada:
-    numero: entero que se desea verificar.
-    
-    Retorna:
-    True si el número es perfecto, False en caso contrario.
-    
-    Relación con el proyecto:
-    Cumple el punto 2.c del enunciado.
-    
-    Costo:
-    O(√numero), porque revisa divisores hasta la raíz cuadrada.
-    """
     # Optimizado: solo recorremos divisores hasta la raíz cuadrada
     if numero <= 1:
         return False
@@ -323,21 +197,6 @@ def es_perfecto(numero):
 
 
 def es_cuadrado_perfecto(numero):
-    """
-    Verifica si un número es cuadrado perfecto usando búsqueda binaria.
-    
-    Entrada:
-    numero: entero que se desea evaluar.
-    
-    Retorna:
-    True si existe un entero k tal que k² = numero; False en caso contrario.
-    
-    Relación con el proyecto:
-    Cumple el punto 2.d del enunciado.
-    
-    Costo:
-    O(log numero), porque reduce el rango de búsqueda a la mitad.
-    """
     # Optimizado con búsqueda binaria sobre el rango de posibles raíces
     if numero < 0:
         return False
@@ -364,29 +223,6 @@ def es_cuadrado_perfecto(numero):
 
 
 def analizar_matriz(matriz):
-    """
-    Analiza una matriz y clasifica sus elementos.
-    
-    Cuenta y almacena:
-    - números pares,
-    - números impares,
-    - números primos,
-    - números perfectos,
-    - números cuadrados perfectos.
-    
-    Entrada:
-    matriz: matriz que se desea analizar.
-    
-    Retorna:
-    Diccionario con cantidades y valores encontrados para cada categoría.
-    
-    Relación con el proyecto:
-    Cumple el punto 2 del enunciado para la matriz A y la matriz A³.
-    
-    Costo:
-    Como mínimo O(n²), porque recorre todos los elementos.
-    Además depende del costo de evaluar primo, perfecto y cuadrado perfecto.
-    """
     pares = []
     impares = []
     primos = []
@@ -438,21 +274,6 @@ def analizar_matriz(matriz):
 
 
 def contar_repeticiones(matriz):
-    """
-    Cuenta cuántas veces aparece cada valor en la matriz.
-    
-    Entrada:
-    matriz: matriz que se desea recorrer.
-    
-    Retorna:
-    Diccionario donde la clave es el valor y el contenido es su frecuencia.
-    
-    Relación con el proyecto:
-    Cumple el punto 4 del enunciado.
-    
-    Costo:
-    O(n²), porque revisa todos los elementos de la matriz.
-    """
     frecuencias = {}
     for fila in matriz:
         for valor in fila:
@@ -465,55 +286,16 @@ def contar_repeticiones(matriz):
 
 
 def buscar_y_contar_en_matriz(matriz, buscado):
-    """
-    Busca un número en la matriz y cuenta cuántas veces aparece.
-
-    Entrada:
-        matriz: matriz donde se realizará la búsqueda secuencial.
-        buscado: número que se desea encontrar.
-
-    Retorna:
-        Tupla (encontrado, cantidad):
-            encontrado es True si aparece el número,
-            cantidad es cuántas veces aparece.
-
-    Relación con el proyecto:
-        Permite comparar la búsqueda secuencial en matriz contra la búsqueda
-        en el árbol JSON equilibrado.
-
-    Costo:
-        O(n²), porque en el peor caso recorre todas las posiciones de la matriz.
-    """
     encontrado = False
     cantidad = 0
-
     for fila in matriz:
         for valor in fila:
             if valor == buscado:
                 encontrado = True
                 cantidad += 1
-
     return encontrado, cantidad
 
 def frecuencias_a_json_ordenado(frecuencias):
-    """
-    Convierte un diccionario de frecuencias en una lista de diccionarios tipo JSON ordenada.
-    
-    Cada elemento queda con la forma:
-    {"valor": número, "cantidad": frecuencia}
-    
-    Entrada:
-    frecuencias: diccionario generado por contar_repeticiones.
-    
-    Retorna:
-    Lista de diccionarios ordenada ascendentemente por el campo valor.
-    
-    Relación con el proyecto:
-    Prepara los datos para construir el árbol binario de búsqueda equilibrado con nodos JSON.
-    
-    Costo:
-    Depende del ordenamiento aplicado sobre la cantidad de valores únicos.
-    """
     claves = []
     for clave in frecuencias:
         claves.append(clave)
@@ -532,21 +314,6 @@ def frecuencias_a_json_ordenado(frecuencias):
 
 
 def frecuencias_a_tuplas_ordenadas(frecuencias):
-    """
-    Convierte un diccionario de frecuencias en una lista de tuplas ordenadas.
-    
-    Entrada:
-    frecuencias: diccionario con valor y cantidad.
-    
-    Retorna:
-    Lista de tuplas (valor, cantidad) ordenadas por valor.
-    
-    Relación con el proyecto:
-    Se conserva como alternativa, aunque la versión principal usa nodos JSON.
-    
-    Costo:
-    Depende del ordenamiento sobre los valores únicos.
-    """
     claves = []
     for clave in frecuencias:
         claves.append(clave)
@@ -561,21 +328,6 @@ def frecuencias_a_tuplas_ordenadas(frecuencias):
 
 
 def matriz_a_vector(matriz):
-    """
-    Convierte una matriz en un vector unidimensional.
-    
-    Entrada:
-    matriz: matriz que se desea aplanar.
-    
-    Retorna:
-    Lista con todos los elementos de la matriz en orden fila por fila.
-    
-    Relación con el proyecto:
-    Cumple el punto 3 del enunciado antes de ordenar los elementos.
-    
-    Costo:
-    O(n²), porque recorre todos los elementos.
-    """
     vector = []
     for fila in matriz:
         for valor in fila:
@@ -585,21 +337,6 @@ def matriz_a_vector(matriz):
 
 
 def insertion_sort_ascendente(vector):
-    """
-    Ordena un vector de forma ascendente usando Insertion Sort.
-    
-    Entrada:
-    vector: lista de números.
-    
-    Retorna:
-    El vector ordenado ascendentemente.
-    
-    Relación con el proyecto:
-    Cumple el punto 3 del enunciado sin usar sorted() ni list.sort().
-    
-    Costo:
-    O(m²) en el peor caso, donde m es la cantidad de elementos del vector.
-    """
     for i in range(1, len(vector)):
         actual = vector[i]
         j = i - 1
@@ -611,21 +348,6 @@ def insertion_sort_ascendente(vector):
 
 
 def invertir_vector(vector):
-    """
-    Invierte manualmente un vector para obtener orden descendente.
-    
-    Entrada:
-    vector: lista previamente ordenada de forma ascendente.
-    
-    Retorna:
-    Nueva lista con los elementos en orden contrario.
-    
-    Relación con el proyecto:
-    Permite mostrar los elementos en forma descendente sin usar reverse() ni reversed().
-    
-    Costo:
-    O(m), donde m es la cantidad de elementos del vector.
-    """
     invertido = []
     for i in range(len(vector) - 1, -1, -1):
         invertido.append(vector[i])
@@ -633,21 +355,6 @@ def invertir_vector(vector):
 
 
 def merge_sort_ascendente(vector):
-    """
-    Ordena un vector ascendentemente usando Merge Sort.
-    
-    Entrada:
-    vector: lista de números.
-    
-    Retorna:
-    Nueva lista ordenada de menor a mayor.
-    
-    Relación con el proyecto:
-    Cumple el punto 3 usando un algoritmo propio basado en divide y vencerás.
-    
-    Costo:
-    O(m log m), donde m es la cantidad de elementos del vector.
-    """
     if len(vector) <= 1:
         return vector
 
@@ -676,22 +383,6 @@ def merge_sort_ascendente(vector):
 
 
 def ordenar_ascendente(vector):
-    """
-    Selecciona el algoritmo de ordenamiento según el tamaño del vector.
-    
-    Entrada:
-    vector: lista de números.
-    
-    Retorna:
-    Vector ordenado ascendentemente.
-    
-    Relación con el proyecto:
-    Evita usar sorted() o list.sort() y mantiene el análisis algorítmico propio.
-    
-    Costo:
-    O(m²) para vectores pequeños con Insertion Sort.
-    O(m log m) para vectores grandes con Merge Sort.
-    """
     # Elegir inserción para vectores pequeños y merge sort para los grandes
     if len(vector) <= 64:
         return insertion_sort_ascendente(vector)
@@ -699,69 +390,34 @@ def ordenar_ascendente(vector):
 
 
 class NodoJSON:
-    """
-    Representa un nodo del Árbol Binario de Búsqueda Equilibrado con estructura JSON.
-    
-    Cada nodo almacena:
-    dato["valor"]: número presente en la matriz.
-    dato["cantidad"]: cantidad de veces que aparece ese número.
-    
-    Los enlaces izquierda y derecha mantienen la propiedad:
-    valores menores van a la izquierda,
-    valores mayores van a la derecha.
-    """
     def __init__(self, valor, cantidad):
-        self.dato = {
-            "valor": valor,
-            "cantidad": cantidad
-        }
-        self.izquierda = None
-        self.derecha = None
+        self.dato = {                                          # Inicializa el diccionario de datos del nodo.
+            "valor": valor,                                    # Clave 'valor' guarda el identificador del nodo.
+            "cantidad": cantidad                               # Clave 'cantidad' guarda la frecuencia del valor.
+        }                                                      # Cierra el diccionario de inicialización.
+        self.izquierda = None                                  # Puntero al subárbol izquierdo (menores).
+        self.derecha = None                                    # Puntero al subárbol derecho (mayores).
 
 
 class NodoFrecuencia:
-    """
-    Representa un nodo alternativo que almacena una tupla (valor, cantidad).
-    
-    Esta clase se conserva como apoyo, aunque la versión principal del proyecto usa NodoJSON.
-    """
     def __init__(self, valor, cantidad):
-        self.dato = (valor, cantidad)
-        self.izquierda = None
-        self.derecha = None
+        self.dato = (valor, cantidad)                          # Guarda la tupla (valor, cantidad).
+        self.izquierda = None                                  # Puntero izquierdo inicializado en None.
+        self.derecha = None                                    # Puntero derecho inicializado en None.
 
 
 class Nodo:
-    """
-    Representa un nodo simple de árbol binario.
-    
-    Guarda únicamente un valor y referencias a los hijos izquierdo y derecho.
-    Se conserva para compatibilidad con funciones generales del proyecto.
-    """
     def __init__(self, valor):
-        self.valor = valor
-        self.izquierda = None
-        self.derecha = None
+        self.valor = valor                                     # Asigna el valor del nodo.
+        self.izquierda = None                                  # Puntero al hijo izquierdo.
+        self.derecha = None                                    # Puntero al hijo derecho.
 
+
+# ==============================================================================
+# ALGORITMOS DE CONSTRUCCIÓN DE ÁRBOLES EQUILIBRADOS (BST)
+# ==============================================================================
 
 def construir_arbol_json_equilibrado(lista_json, inicio, fin):
-    """
-    Construye un Árbol Binario de Búsqueda Equilibrado con nodos tipo JSON.
-    
-    Entrada:
-    lista_json: lista ordenada de diccionarios {"valor": x, "cantidad": y}.
-    inicio: índice inicial del segmento.
-    fin: índice final del segmento.
-    
-    Retorna:
-    Raíz del árbol construido.
-    
-    Relación con el proyecto:
-    Cumple el punto 5 del enunciado usando un árbol equilibrado que maneja repetidos.
-    
-    Costo:
-    O(u), donde u es la cantidad de valores únicos.
-    """
     # Construye un árbol binario de búsqueda equilibrado desde una lista JSON ordenada.
     # La lista JSON ya está ordenada por valor.
     # Se toma el elemento central como raíz.
@@ -784,23 +440,6 @@ def construir_arbol_json_equilibrado(lista_json, inicio, fin):
 
 
 def construir_arbol_frecuencias_equilibrado(tuplas, inicio, fin):
-    """
-    Construye un árbol equilibrado usando tuplas (valor, cantidad).
-    
-    Entrada:
-    tuplas: lista ordenada de tuplas.
-    inicio: índice inicial.
-    fin: índice final.
-    
-    Retorna:
-    Raíz del árbol de frecuencias.
-    
-    Relación con el proyecto:
-    Se mantiene como alternativa a la versión JSON.
-    
-    Costo:
-    O(u), donde u es la cantidad de valores únicos.
-    """
     if inicio > fin:
         return None
 
@@ -815,23 +454,6 @@ def construir_arbol_frecuencias_equilibrado(tuplas, inicio, fin):
 
 
 def construir_arbol_equilibrado(vector, inicio, fin):
-    """
-    Construye un árbol binario equilibrado desde un vector ordenado.
-    
-    Entrada:
-    vector: lista ordenada.
-    inicio: índice inicial.
-    fin: índice final.
-    
-    Retorna:
-    Raíz del árbol.
-    
-    Relación con el proyecto:
-    Versión general del árbol usando nodos simples.
-    
-    Costo:
-    O(m), donde m es la cantidad de elementos del vector.
-    """
     # Construye un árbol binario de búsqueda equilibrado a partir de un vector ordenado.
     # Primero se ordena el vector de elementos.
     # Luego se toma el elemento central como raíz.
@@ -850,22 +472,6 @@ def construir_arbol_equilibrado(vector, inicio, fin):
 
 
 def buscar_en_arbol(raiz, buscado):
-    """
-    Busca un valor en un árbol binario de búsqueda.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    buscado: valor que se desea encontrar.
-    
-    Retorna:
-    True si el valor está en el árbol, False en caso contrario.
-    
-    Relación con el proyecto:
-    Implementa la regla: menor izquierda, mayor derecha, igual encontrado.
-    
-    Costo:
-    O(h), donde h es la altura del árbol.
-    """
     if raiz is None:
         return False
 
@@ -879,23 +485,6 @@ def buscar_en_arbol(raiz, buscado):
 
 
 def buscar_en_arbol_json(raiz, buscado):
-    """
-    Busca un valor en el árbol JSON equilibrado.
-    
-    Entrada:
-    raiz: raíz del árbol JSON.
-    buscado: valor a buscar.
-    
-    Retorna:
-    Diccionario {"valor": buscado, "cantidad": frecuencia} si lo encuentra.
-    None si no lo encuentra.
-    
-    Relación con el proyecto:
-    Cumple el punto 5.a al buscar en el árbol y devolver la cantidad de apariciones.
-    
-    Costo:
-    O(log u) si el árbol está equilibrado, donde u es la cantidad de valores únicos.
-    """
     if raiz is None:
         return None
 
@@ -908,42 +497,12 @@ def buscar_en_arbol_json(raiz, buscado):
 
 
 def contar_nodos_arbol_json(raiz):
-    """
-    Cuenta la cantidad de nodos del árbol JSON.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    
-    Retorna:
-    Número total de nodos.
-    
-    Relación con el proyecto:
-    Permite mostrar cuántos valores únicos tiene el árbol.
-    
-    Costo:
-    O(u), porque visita todos los nodos.
-    """
     if raiz is None:
         return 0
     return 1 + contar_nodos_arbol_json(raiz.izquierda) + contar_nodos_arbol_json(raiz.derecha)
 
 
 def altura_arbol_json(raiz):
-    """
-    Calcula la altura del árbol JSON.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    
-    Retorna:
-    Altura del árbol.
-    
-    Relación con el proyecto:
-    Ayuda a explicar por qué la búsqueda depende de la altura.
-    
-    Costo:
-    O(u), porque recorre los nodos para calcular la altura.
-    """
     if raiz is None:
         return 0
 
@@ -957,21 +516,6 @@ def altura_arbol_json(raiz):
 
 
 def recorrido_inorden_json(raiz):
-    """
-    Realiza recorrido inorden sobre el árbol JSON.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    
-    Retorna:
-    Lista de diccionarios ordenados de menor a mayor por valor.
-    
-    Relación con el proyecto:
-    Demuestra la propiedad del árbol binario de búsqueda.
-    
-    Costo:
-    O(u), porque visita todos los nodos.
-    """
     resultado = []
 
     def recorrer(nodo):
@@ -985,22 +529,6 @@ def recorrido_inorden_json(raiz):
 
 
 def buscar_en_arbol_frecuencias(raiz, buscado):
-    """
-    Busca un valor en el árbol de frecuencias basado en tuplas.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    buscado: valor a buscar.
-    
-    Retorna:
-    Tupla (valor, cantidad) si lo encuentra; None en caso contrario.
-    
-    Relación con el proyecto:
-    Se conserva como alternativa a la búsqueda JSON.
-    
-    Costo:
-    O(h), donde h es la altura del árbol.
-    """
     if raiz is None:
         return None
 
@@ -1013,36 +541,12 @@ def buscar_en_arbol_frecuencias(raiz, buscado):
 
 
 def contar_nodos_arbol_frecuencias(raiz):
-    """
-    Cuenta nodos en un árbol de frecuencias basado en tuplas.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    
-    Retorna:
-    Cantidad total de nodos.
-    
-    Costo:
-    O(u), porque visita todos los nodos.
-    """
     if raiz is None:
         return 0
     return 1 + contar_nodos_arbol_frecuencias(raiz.izquierda) + contar_nodos_arbol_frecuencias(raiz.derecha)
 
 
 def altura_arbol(raiz):
-    """
-    Calcula la altura de un árbol binario.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    
-    Retorna:
-    Altura del árbol.
-    
-    Costo:
-    O(u), porque visita todos los nodos.
-    """
     if raiz is None:
         return 0
     altura_izq = altura_arbol(raiz.izquierda)
@@ -1051,18 +555,6 @@ def altura_arbol(raiz):
 
 
 def recorrido_inorden_frecuencias(raiz):
-    """
-    Recorre un árbol de frecuencias en inorden.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    
-    Retorna:
-    Lista de tuplas ordenadas de menor a mayor.
-    
-    Costo:
-    O(u), porque visita todos los nodos.
-    """
     resultado = []
     if raiz is not None:
         resultado.extend(recorrido_inorden_frecuencias(raiz.izquierda))
@@ -1072,22 +564,6 @@ def recorrido_inorden_frecuencias(raiz):
 
 
 def buscar_en_matriz(matriz, buscado):
-    """
-    Busca un valor en la matriz mediante recorrido secuencial.
-    
-    Entrada:
-    matriz: matriz donde se busca.
-    buscado: valor que se desea encontrar.
-    
-    Retorna:
-    True si lo encuentra, False en caso contrario.
-    
-    Relación con el proyecto:
-    Sirve para comparar contra la búsqueda en árbol.
-    
-    Costo:
-    O(n²) en el peor caso.
-    """
     for fila in matriz:
         for valor in fila:
             if valor == buscado:
@@ -1096,23 +572,6 @@ def buscar_en_matriz(matriz, buscado):
 
 
 def medir_tiempo(funcion, estructura, buscado):
-    """
-    Mide el tiempo de ejecución de una función de búsqueda.
-    
-    Entrada:
-    funcion: función que se desea medir.
-    estructura: matriz o árbol donde se busca.
-    buscado: valor buscado.
-    
-    Retorna:
-    Resultado de la función y tiempo consumido en nanosegundos.
-    
-    Relación con el proyecto:
-    Cumple el punto 5.a y 5.b sobre tomar tiempos de ejecución.
-    
-    Costo:
-    Depende de la función recibida.
-    """
     # Mide el tiempo en nanosegundos que tarda la búsqueda
     inicio = time.perf_counter_ns()
     encontrado = funcion(estructura, buscado)
@@ -1120,47 +579,18 @@ def medir_tiempo(funcion, estructura, buscado):
     return encontrado, fin - inicio
 
 
-# =========================================================
-# DIBUJO DEL ÁRBOL EN TEXTO
-# =========================================================
-
+# ==============================================================================
+# DIBUJO DEL ÁRBOL EN TEXTO (REPRESENTACIÓN ASCII Y DOT DE GRAPHVIZ)
+# ==============================================================================
 
 def arbol_a_ascii(raiz):
-    """
-    Convierte un árbol en una representación de texto tipo ASCII.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    
-    Retorna:
-    Cadena de texto con el dibujo del árbol.
-    
-    Relación con el proyecto:
-    Permite visualizar el árbol sin depender de librerías externas.
-    
-    Costo:
-    O(u), porque recorre los nodos para construir la representación.
-    """
     # Convierte un árbol en una representación ASCII legible
     if raiz is None:
         return "Árbol vacío"
 
-    def etiqueta_nodo(nodo):
-        """
-        Devuelve una etiqueta corta para mostrar el nodo.
-
-        Para nodos JSON se muestra valor|cantidad.
-        Ejemplo: 5|8 significa valor 5 con 8 apariciones.
-        """
-        if hasattr(nodo, "dato"):
-            if isinstance(nodo.dato, dict):
-                return str(nodo.dato["valor"]) + "|" + str(nodo.dato["cantidad"])
-            return str(nodo.dato[0]) + "|" + str(nodo.dato[1])
-        return str(nodo.valor)
-
     def display_aux(nodo):
         if nodo.izquierda is None and nodo.derecha is None:
-            linea = etiqueta_nodo(nodo)
+            linea = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
             ancho = len(linea)
             alto = 1
             centro = ancho // 2
@@ -1168,7 +598,7 @@ def arbol_a_ascii(raiz):
 
         if nodo.derecha is None:
             lineas, ancho, alto, centro = display_aux(nodo.izquierda)
-            valor = etiqueta_nodo(nodo)
+            valor = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
             ancho_valor = len(valor)
 
             primera = (
@@ -1194,7 +624,7 @@ def arbol_a_ascii(raiz):
 
         if nodo.izquierda is None:
             lineas, ancho, alto, centro = display_aux(nodo.derecha)
-            valor = etiqueta_nodo(nodo)
+            valor = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
             ancho_valor = len(valor)
 
             primera = (
@@ -1221,7 +651,7 @@ def arbol_a_ascii(raiz):
         izquierda, ancho_izq, alto_izq, centro_izq = display_aux(nodo.izquierda)
         derecha, ancho_der, alto_der, centro_der = display_aux(nodo.derecha)
 
-        valor = etiqueta_nodo(nodo)
+        valor = str(nodo.dato if hasattr(nodo, 'dato') else nodo.valor)
         ancho_valor = len(valor)
 
         primera = (
@@ -1256,15 +686,30 @@ def arbol_a_ascii(raiz):
             ancho_izq + ancho_valor // 2
         )
 
-    lineas, _, _, _ = display_aux(raiz)
-    if not lineas:
-        return "Árbol vacío"
-
-    ancho_maximo = max(len(linea) for linea in lineas)
-    lineas_centradas = []
-    for linea in lineas:
-        lineas_centradas.append(linea.center(ancho_maximo + 8))
-    return "\n".join(lineas_centradas)
+    lineas, _, _, _ = display_aux(raiz)                        # Llama a la función recursiva.
+    if not lineas:                                             # Si no devolvió líneas.
+        return "Árbol vacío"                                   # Retorna texto indicando vacío.
+    ancho_maximo = 0                                           # Inicializa el ancho máximo de línea en 0.
+    for i in range(len(lineas)):                               # Itera sobre todas las líneas.
+        l = len(lineas[i])                                     # Mide la longitud de la línea actual.
+        if l > ancho_maximo:                                   # Si es mayor que el máximo actual.
+            ancho_maximo = l                                   # Actualiza el ancho máximo.
+    lineas_centradas = []                                      # Prepara la lista de líneas que serán centradas.
+    for i in range(len(lineas)):                               # Recorre cada línea.
+        linea = lineas[i]                                      # Obtiene la línea actual.
+        ancho_actual = len(linea)                              # Mide su longitud.
+        faltante = (ancho_maximo + 8) - ancho_actual           # Calcula el espacio faltante para centrar con margen de 8.
+        mitad_izq = faltante // 2                              # Espacios para el lado izquierdo.
+        mitad_der = faltante - mitad_izq                       # Espacios para el lado derecho.
+        espacio_izq = ""                                       # Prepara texto izquierdo.
+        for _ in range(mitad_izq):                             # Genera los espacios izquierdos.
+            espacio_izq += " "                                 # Agrega espacio.
+        espacio_der = ""                                       # Prepara texto derecho.
+        for _ in range(mitad_der):                             # Genera los espacios derechos.
+            espacio_der += " "                                 # Agrega espacio.
+        linea_centrada = espacio_izq + linea + espacio_der     # Arma la línea final centrada.
+        lineas_centradas = lineas_centradas + [linea_centrada] # Agrega a la lista final de líneas centradas sin .append().
+    return unir_con_delimitador(lineas_centradas, "\n")        # Une las líneas usando saltos de línea con la función manual.
 
 
 def arbol_json_a_diccionario(raiz):
@@ -1314,22 +759,6 @@ def arbol_a_json_texto(raiz):
 
 
 def exportar_arbol_dot(raiz, nombre_grafo="Arbol"):
-    """
-    Exporta el árbol en formato DOT para visualización con Graphviz.
-    
-    Entrada:
-    raiz: raíz del árbol.
-    nombre_grafo: nombre del grafo en el archivo DOT.
-    
-    Retorna:
-    Cadena de texto en formato DOT.
-    
-    Relación con el proyecto:
-    Solo apoya la visualización del árbol; no construye ni modifica el árbol.
-    
-    Costo:
-    O(u), porque visita cada nodo una vez.
-    """
     lineas = []
     lineas.append(f"digraph {nombre_grafo} {{")
     lineas.append("    node [shape=circle];")
