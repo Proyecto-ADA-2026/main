@@ -581,7 +581,7 @@ def medir_tiempo(funcion, estructura, buscado):
 
 
 # ==============================================================================
-# DIBUJO DEL ÁRBOL EN TEXTO (REPRESENTACIÓN ASCII Y DOT DE GRAPHVIZ)
+# DIBUJO DEL ÁRBOL EN TEXTO (REPRESENTACIÓN ASCII)
 # ==============================================================================
 
 def arbol_a_ascii(raiz):
@@ -713,50 +713,59 @@ def arbol_a_ascii(raiz):
     return "\n".join(lineas_centradas)                          # Une las líneas usando saltos de línea.
 
 
-def arbol_json_a_diccionario(raiz):
+def arbol_json_a_lista(raiz):
     """
-    Convierte el árbol JSON equilibrado en un diccionario anidado.
+    Convierte el árbol binario de búsqueda equilibrado a una lista JSON plana.
 
-    Cada nodo se representa con la estructura:
-        {
-            "valor": número,
-            "cantidad": frecuencia,
-            "izquierda": subárbol izquierdo,
-            "derecha": subárbol derecho
+    Cada nodo se representa como:
+    {
+        "id": identificador del nodo,
+        "valor": valor almacenado,
+        "cantidad": frecuencia del valor,
+        "izquierda": id del hijo izquierdo o None,
+        "derecha": id del hijo derecho o None
+    }
+
+    Esta representación permite ver la estructura del árbol sin Graphviz.
+    """
+    nodos = []
+    contador = [0]
+
+    def recorrer(nodo):
+        if nodo is None:
+            return None
+
+        id_actual = contador[0]
+        contador[0] += 1
+
+        registro = {
+            "id": id_actual,
+            "valor": nodo.dato["valor"],
+            "cantidad": nodo.dato["cantidad"],
+            "izquierda": None,
+            "derecha": None,
         }
 
-    Si el nodo es None, retorna None.
+        nodos.append(registro)
 
-    Relación con el proyecto:
-        Permite exportar el árbol en formato JSON sin depender de Graphviz.
+        id_izquierda = recorrer(nodo.izquierda)
+        id_derecha = recorrer(nodo.derecha)
 
-    Costo:
-        O(u), donde u es la cantidad de valores únicos del árbol.
-    """
-    if raiz is None:
-        return None
+        registro["izquierda"] = id_izquierda
+        registro["derecha"] = id_derecha
 
-    return {
-        "valor": raiz.dato["valor"],
-        "cantidad": raiz.dato["cantidad"],
-        "izquierda": arbol_json_a_diccionario(raiz.izquierda),
-        "derecha": arbol_json_a_diccionario(raiz.derecha)
-    }
+        return id_actual
+
+    recorrer(raiz)
+    return nodos
 
 
 def arbol_a_json_texto(raiz):
     """
-    Convierte el árbol JSON equilibrado a texto JSON con formato legible.
-
-    Retorna:
-        Una cadena en formato JSON lista para guardarse en un archivo .json.
-
-    Nota:
-        La librería json es estándar de Python y solo se usa para exportar
-        la estructura; no construye el árbol ni realiza búsquedas.
+    Convierte el árbol a texto JSON plano por nodos.
     """
-    diccionario = arbol_json_a_diccionario(raiz)
-    return json.dumps(diccionario, indent=4, ensure_ascii=False)
+    lista_nodos = arbol_json_a_lista(raiz)
+    return json.dumps(lista_nodos, indent=4, ensure_ascii=False)
 
 
 

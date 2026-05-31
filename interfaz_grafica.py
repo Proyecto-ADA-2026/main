@@ -168,6 +168,20 @@ class App(tk.Tk):
         )
         self.btn_abrir_A3.pack(side="left", padx=5)
 
+        self.btn_ver_json_A = ttk.Button(
+            botones_frame,
+            text="Ver JSON Árbol A",
+            command=lambda: self.mostrar_json_arbol("Árbol A en JSON", self.arbol_A),
+        )
+        self.btn_ver_json_A.pack(side="left", padx=5)
+
+        self.btn_ver_json_A3 = ttk.Button(
+            botones_frame,
+            text="Ver JSON Árbol A³",
+            command=lambda: self.mostrar_json_arbol("Árbol A³ en JSON", self.arbol_A3),
+        )
+        self.btn_ver_json_A3.pack(side="left", padx=5)
+
         self.btn_ver_tabla_A = ttk.Button(
             botones_frame,
             text="Ver tabla Matriz A",
@@ -289,6 +303,66 @@ class App(tk.Tk):
         widget.see("end")
         widget.config(state="disabled")
 
+    def _limpiar_texto(self, texto):
+        if texto is None:
+            return ""
+        return texto.strip()
+
+    def _es_entero(self, texto):
+        if texto is None:
+            return False
+        texto = texto.strip()
+        if texto == "":
+            return False
+        if texto.startswith("-"):
+            return texto[1:].isdigit()
+        return texto.isdigit()
+
+    def mostrar_json_arbol(self, titulo, arbol):
+        """
+        Muestra el árbol binario de búsqueda equilibrado en formato JSON plano por nodos.
+
+        No usa Graphviz.
+        No genera imágenes.
+        Permite ver la estructura real del árbol con id, valor, cantidad,
+        izquierda y derecha.
+        """
+        if arbol is None:
+            messagebox.showwarning(
+                "Árbol no generado",
+                "Primero genera la matriz para construir el árbol."
+            )
+            return
+
+        contenido_json = arbol_a_json_texto(arbol)
+
+        ventana = tk.Toplevel(self)
+        ventana.title(titulo)
+        ventana.geometry("850x600")
+
+        texto = tk.Text(
+            ventana,
+            wrap="none",
+            font=("Consolas", 10),
+            bg="#ffffff",
+            fg="#111111"
+        )
+
+        scroll_y = ttk.Scrollbar(ventana, orient="vertical", command=texto.yview)
+        scroll_x = ttk.Scrollbar(ventana, orient="horizontal", command=texto.xview)
+
+        texto.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+
+        texto.grid(row=0, column=0, sticky="nsew")
+        scroll_y.grid(row=0, column=1, sticky="ns")
+        scroll_x.grid(row=1, column=0, sticky="ew")
+
+        ventana.rowconfigure(0, weight=1)
+        ventana.columnconfigure(0, weight=1)
+
+        texto.insert("1.0", contenido_json)
+        texto.config(state="disabled")
+
     def guardar_matriz_en_txt(self, nombre_archivo, matriz, titulo):
         # Guarda en la carpeta resultados para mantener los archivos organizados.
         carpeta_resultados = "resultados"
@@ -355,7 +429,7 @@ class App(tk.Tk):
             self.A = crear_matriz(n)
 
             if n > 100:
-                self.gestor.guardar_matriz("matriz_A.txt", self.A, "Matriz A")
+                self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
                 self.status.config(text="Estado: guardando A3 fila por fila...")
                 self.update_idletasks()
                 
@@ -363,8 +437,8 @@ class App(tk.Tk):
                 self.A3 = guardar_A3_directo_txt(self.A, os.path.join("resultados", "matriz_A3.txt"))
             else:
                 self.A3 = calcular_A3(self.A)
-                self.gestor.guardar_matriz("matriz_A.txt",  self.A,  "Matriz A")
-                self.gestor.guardar_matriz("matriz_A3.txt", self.A3, "Matriz A3")
+                self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
+                self.guardar_matriz_en_txt("matriz_A3.txt", self.A3, "Matriz A3")
 
             # Paso 2: analizar
             analisis_A  = analizar_matriz(self.A)
@@ -472,17 +546,19 @@ class App(tk.Tk):
 
             if n > 20:
                 self.status.config(
-                    text="Estado: matriz generada. Vista previa en interfaz y .txt guardados (matriz_A.txt, matriz_A3.txt)."
+                    text="Estado: matriz generada. Se guardaron matriz_A.txt, matriz_A3.txt, arbol_A.json y arbol_A3.json."
                 )
             else:
-                self.status.config(text="Estado: matriz generada correctamente. Ya puedes buscar un número.")
+                self.status.config(
+                    text="Estado: matriz generada correctamente. Se crearon matriz_A.txt, matriz_A3.txt, arbol_A.json y arbol_A3.json."
+                )
 
             # Exportar a JSON
-            contenido_A = arbol_a_json_texto(self.arbol_A)
-            contenido_A3 = arbol_a_json_texto(self.arbol_A3)
+            contenido_A_json = arbol_a_json_texto(self.arbol_A)
+            contenido_A3_json = arbol_a_json_texto(self.arbol_A3)
 
-            self.guardar_texto_en_archivo("arbol_A.json", contenido_A)
-            self.guardar_texto_en_archivo("arbol_A3.json", contenido_A3)
+            self.guardar_texto_en_archivo("arbol_A.json", contenido_A_json)
+            self.guardar_texto_en_archivo("arbol_A3.json", contenido_A3_json)
 
         except Exception as error:
             messagebox.showerror("Error", f"Ocurrió un problema al generar la matriz:\n{error}")
