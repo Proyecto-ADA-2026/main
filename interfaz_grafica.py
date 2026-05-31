@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
+import json
 
 MAX_N = 150
 
@@ -320,10 +321,9 @@ class App(tk.Tk):
 
     def mostrar_json_arbol(self, titulo, arbol):
         """
-        Muestra el árbol binario de búsqueda equilibrado en formato JSON plano por nodos.
+        Muestra el árbol binario de búsqueda equilibrado en formato JSON plano
+        y en forma de tabla de nodos.
 
-        No usa Graphviz.
-        No genera imágenes.
         Permite ver la estructura real del árbol con id, valor, cantidad,
         izquierda y derecha.
         """
@@ -335,21 +335,73 @@ class App(tk.Tk):
             return
 
         contenido_json = arbol_a_json_texto(arbol)
+        nodos = json.loads(contenido_json)
 
         ventana = tk.Toplevel(self)
         ventana.title(titulo)
-        ventana.geometry("850x600")
+        ventana.geometry("950x650")
+
+        notebook = ttk.Notebook(ventana)
+        notebook.pack(fill="both", expand=True)
+
+        tab_tabla = ttk.Frame(notebook)
+        notebook.add(tab_tabla, text="Vista por nodos")
+
+        columnas = ("id", "valor", "cantidad", "izquierda", "derecha")
+        tabla = ttk.Treeview(
+            tab_tabla,
+            columns=columnas,
+            show="headings",
+            height=20,
+        )
+
+        tabla.heading("id", text="ID")
+        tabla.heading("valor", text="Valor")
+        tabla.heading("cantidad", text="Cantidad")
+        tabla.heading("izquierda", text="Izquierda")
+        tabla.heading("derecha", text="Derecha")
+
+        tabla.column("id", width=80, anchor="center")
+        tabla.column("valor", width=120, anchor="center")
+        tabla.column("cantidad", width=120, anchor="center")
+        tabla.column("izquierda", width=120, anchor="center")
+        tabla.column("derecha", width=120, anchor="center")
+
+        scroll_tabla_y = ttk.Scrollbar(tab_tabla, orient="vertical", command=tabla.yview)
+        tabla.configure(yscrollcommand=scroll_tabla_y.set)
+
+        tabla.grid(row=0, column=0, sticky="nsew")
+        scroll_tabla_y.grid(row=0, column=1, sticky="ns")
+
+        tab_tabla.rowconfigure(0, weight=1)
+        tab_tabla.columnconfigure(0, weight=1)
+
+        for nodo in nodos:
+            tabla.insert(
+                "",
+                "end",
+                values=(
+                    nodo["id"],
+                    nodo["valor"],
+                    nodo["cantidad"],
+                    nodo["izquierda"] if nodo["izquierda"] is not None else "null",
+                    nodo["derecha"] if nodo["derecha"] is not None else "null",
+                ),
+            )
+
+        tab_json = ttk.Frame(notebook)
+        notebook.add(tab_json, text="JSON completo")
 
         texto = tk.Text(
-            ventana,
+            tab_json,
             wrap="none",
             font=("Consolas", 10),
             bg="#ffffff",
-            fg="#111111"
+            fg="#111111",
         )
 
-        scroll_y = ttk.Scrollbar(ventana, orient="vertical", command=texto.yview)
-        scroll_x = ttk.Scrollbar(ventana, orient="horizontal", command=texto.xview)
+        scroll_y = ttk.Scrollbar(tab_json, orient="vertical", command=texto.yview)
+        scroll_x = ttk.Scrollbar(tab_json, orient="horizontal", command=texto.xview)
 
         texto.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
 
@@ -357,8 +409,8 @@ class App(tk.Tk):
         scroll_y.grid(row=0, column=1, sticky="ns")
         scroll_x.grid(row=1, column=0, sticky="ew")
 
-        ventana.rowconfigure(0, weight=1)
-        ventana.columnconfigure(0, weight=1)
+        tab_json.rowconfigure(0, weight=1)
+        tab_json.columnconfigure(0, weight=1)
 
         texto.insert("1.0", contenido_json)
         texto.config(state="disabled")
@@ -472,13 +524,13 @@ class App(tk.Tk):
             if len(lista_json_A) <= 63:
                 ascii_arbol_A = arbol_a_ascii(self.arbol_A)
             else:
-                ascii_A = "Arbol A generado (" + str(len(lista_json_A)) + " nodos). Busqueda disponible."
+                ascii_arbol_A = "Arbol A generado (" + str(len(lista_json_A)) + " nodos). Busqueda disponible."
             if len(lista_json_A3) <= 63:
-                ascii_A3 = arbol_a_ascii(self.arbol_A3)
+                ascii_arbol_A3 = arbol_a_ascii(self.arbol_A3)
             else:
-                ascii_A3 = "Arbol A3 generado (" + str(len(lista_json_A3)) + " nodos). Busqueda disponible."
+                ascii_arbol_A3 = "Arbol A3 generado (" + str(len(lista_json_A3)) + " nodos). Busqueda disponible."
             self._set_text(self.txt_arbol,
-                           "ARBOL A:\n" + ascii_A + "\n\nARBOL A3:\n" + ascii_A3)
+                           "ARBOL A:\n" + ascii_arbol_A + "\n\nARBOL A3:\n" + ascii_arbol_A3)
 
             # Paso 8: memoria
             mem_actual, mem_pico = obtener_memoria_actual_y_pico()
