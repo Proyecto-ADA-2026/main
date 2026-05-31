@@ -3,15 +3,6 @@ interfaz_grafica.py
 Frontend del proyecto: ventana grafica, botones y visualizacion de resultados.
 Backend (algoritmos puros): Proyecto_final.py
 
-Restricciones aplicadas:
-  - Sin .append()      -> lista = lista + [elemento]
-  - Sin .join()        -> for + += construyen el string
-  - Sin set()          -> for + while eliminan duplicados manualmente
-  - Sin os.makedirs    -> os.mkdir en try/except
-  - Sin os.path.exists -> open() en try/except
-  - Sin os.path.join   -> concatenacion de strings con +
-  - Sin json.dump      -> JSON escrito caracter a caracter con recursion
-  - Librerias permitidas: tkinter (GUI), os (solo mkdir y startfile)
 """
 
 import tkinter as tk                 # Libreria para crear la ventana grafica en escritorio
@@ -320,6 +311,195 @@ class ConstructorTexto:
 
 
 # ================================================================
+# CLASE: VisualizadorArbol
+# Responsabilidad: Dibujar graficamente el arbol BST en un Canvas.
+# Sin .append(), sin .join(), sin set().
+# ================================================================
+
+class VisualizadorArbol(tk.Toplevel):
+    """Ventana emergente para visualizar el arbol BST graficamente con nodos y lineas."""
+
+    def __init__(self, padre, raiz, titulo):
+        super().__init__(padre)
+        self.title(titulo)
+        self.geometry("1100x750")
+        self.configure(bg="#121214")
+        self.minsize(800, 600)
+
+        # Hacer la ventana flotante sobre el padre
+        self.transient(padre)
+
+        self.raiz = raiz
+        self.nodos_ovales = {}
+        self.nodos_datos = {}
+
+        # Contenedor principal con scrollbars
+        frame = ttk.Frame(self)
+        frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
+
+        sb_y = ttk.Scrollbar(frame, orient="vertical")
+        sb_x = ttk.Scrollbar(frame, orient="horizontal")
+
+        self.canvas = tk.Canvas(
+            frame,
+            bg="#121214",
+            xscrollcommand=sb_x.set,
+            yscrollcommand=sb_y.set,
+            highlightthickness=0
+        )
+
+        sb_y.config(command=self.canvas.yview)
+        sb_x.config(command=self.canvas.xview)
+
+        sb_y.pack(side="right", fill="y")
+        sb_x.pack(side="bottom", fill="x")
+        self.canvas.pack(side="left", fill="both", expand=True)
+
+        # Barra de informacion al pasar el mouse por encima de los nodos
+        self.lbl_info = tk.Label(
+            self,
+            text="Pasa el mouse sobre un nodo para ver mas informacion. Usa las barras para desplazarte.",
+            bg="#1c1c1f",
+            fg="#a1a1aa",
+            font=("Segoe UI", 10, "bold"),
+            pady=8
+        )
+        self.lbl_info.pack(fill="x")
+
+        # Dibujar el arbol
+        self.graficar()
+
+    def _calcular_altura(self, nodo):
+        """Calcula la altura maxima de forma recursiva sin max()."""
+        if nodo is None:
+            return 0
+        h_izq = self._calcular_altura(nodo.izquierda)
+        h_der = self._calcular_altura(nodo.derecha)
+        if h_izq > h_der:
+            return h_izq + 1
+        return h_der + 1
+
+    def _calcular_posiciones(self, nodo, depth, coordenadas, contador):
+        """Calcula las posiciones de cada nodo usando recorrido inorden."""
+        if nodo is None:
+            return contador
+        # Rama izquierda
+        contador = self._calcular_posiciones(nodo.izquierda, depth + 1, coordenadas, contador)
+
+        # Nodo actual
+        x = 60 + contador * 90
+        y = 60 + depth * 90
+        coordenadas[id(nodo)] = (x, y)
+        self.nodos_datos[id(nodo)] = nodo.dato
+        contador += 1
+
+        # Rama derecha
+        contador = self._calcular_posiciones(nodo.derecha, depth + 1, coordenadas, contador)
+        return contador
+
+    def _dibujar(self, nodo, coordenadas):
+        """Dibuja de forma recursiva lineas y luego nodos (ovalos + textos)."""
+        if nodo is None:
+            return
+        x, y = coordenadas[id(nodo)]
+
+        # 1. Dibujar lineas de conexion primero (para que queden por debajo del circulo del nodo)
+        if nodo.izquierda is not None:
+            x_izq, y_izq = coordenadas[id(nodo.izquierda)]
+            self.canvas.create_line(x, y, x_izq, y_izq, fill="#3f3f46", width=2)
+            self._dibujar(nodo.izquierda, coordenadas)
+
+        if nodo.derecha is not None:
+            x_der, y_der = coordenadas[id(nodo.derecha)]
+            self.canvas.create_line(x, y, x_der, y_der, fill="#3f3f46", width=2)
+            self._dibujar(nodo.derecha, coordenadas)
+
+        # 2. Dibujar circulo del nodo
+        r = 24
+        oval_id = self.canvas.create_oval(
+            x - r, y - r, x + r, y + r,
+            fill="#1e3a8a",
+            outline="#3b82f6",
+            width=2.5
+        )
+        self.nodos_ovales[id(nodo)] = oval_id
+
+        # 3. Dibujar el texto del valor y repeticiones
+        valor = nodo.dato["valor"]
+        cant = nodo.dato["cantidad"]
+        texto = str(valor) + "\n(" + str(cant) + ")"
+        text_id = self.canvas.create_text(
+            x, y,
+            text=texto,
+            fill="#f8fafc",
+            font=("Segoe UI", 9, "bold"),
+            justify="center"
+        )
+
+        # 4. Vincular eventos hover
+        self.canvas.tag_bind(oval_id, "<Enter>", lambda e, nid=id(nodo): self.al_entrar(nid))
+        self.canvas.tag_bind(oval_id, "<Leave>", lambda e, nid=id(nodo): self.al_salir(nid))
+        self.canvas.tag_bind(text_id, "<Enter>", lambda e, nid=id(nodo): self.al_entrar(nid))
+        self.canvas.tag_bind(text_id, "<Leave>", lambda e, nid=id(nodo): self.al_salir(nid))
+
+    def al_entrar(self, nid):
+        """Cambia el color del nodo enfocado a verde esmeralda y actualiza la barra."""
+        oval_id = self.nodos_ovales[nid]
+        self.canvas.itemconfig(oval_id, fill="#047857", outline="#34d399")
+
+        dato = self.nodos_datos[nid]
+        val = dato["valor"]
+        cant = dato["cantidad"]
+        self.lbl_info.config(
+            text="Nodo enfocado -> Valor: " + str(val) + " | Repeticiones en la matriz: " + str(cant),
+            fg="#34d399"
+        )
+
+    def al_salir(self, nid):
+        """Restaura el color original del nodo y limpia la barra."""
+        oval_id = self.nodos_ovales[nid]
+        self.canvas.itemconfig(oval_id, fill="#1e3a8a", outline="#3b82f6")
+
+        self.lbl_info.config(
+            text="Pasa el mouse sobre un nodo para ver mas informacion. Usa las barras para desplazarte.",
+            fg="#a1a1aa"
+        )
+
+    def graficar(self):
+        """Dibuja el arbol calculando dimensiones y configurando el scrollregion."""
+        if self.raiz is None:
+            self.canvas.create_text(
+                200, 100,
+                text="El arbol esta vacio. Primero genera la matriz.",
+                fill="#f8fafc",
+                font=("Segoe UI", 12)
+            )
+            return
+
+        coordenadas = {}
+
+        # Contar total de nodos de forma recursiva
+        def contar(n):
+            if n is None:
+                return 0
+            return 1 + contar(n.izquierda) + contar(n.derecha)
+
+        total_nodos = contar(self.raiz)
+        altura = self._calcular_altura(self.raiz)
+
+        # 1. Calcular coordenadas
+        self._calcular_posiciones(self.raiz, 0, coordenadas, 0)
+
+        # 2. Dibujar
+        self._dibujar(self.raiz, coordenadas)
+
+        # 3. Ajustar limites de desplazamiento
+        ancho = 120 + total_nodos * 90
+        alto = 120 + altura * 90
+        self.canvas.config(scrollregion=(0, 0, ancho, alto))
+
+
+# ================================================================
 # CLASE: App (ventana principal)
 # Responsabilidad: construir la GUI y manejar los eventos del usuario.
 # ================================================================
@@ -402,7 +582,9 @@ class App(tk.Tk):
         ttk.Button(bf, text="Abrir TXT A",       command=lambda: self._abrir("matriz_A.txt")).pack(side="left",  padx=5)
         ttk.Button(bf, text="Abrir TXT A3",      command=lambda: self._abrir("matriz_A3.txt")).pack(side="left", padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A",  command=lambda: self._abrir("arbol_A.json")).pack(side="left",  padx=5)
+        ttk.Button(bf, text="Ver Grafico Arbol A",  command=lambda: self._mostrar_grafico_arbol("Grafico Arbol A",  self.arbol_A)).pack(side="left",  padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A3", command=lambda: self._abrir("arbol_A3.json")).pack(side="left", padx=5)
+        ttk.Button(bf, text="Ver Grafico Arbol A3", command=lambda: self._mostrar_grafico_arbol("Grafico Arbol A3", self.arbol_A3)).pack(side="left", padx=5)
         ttk.Button(bf, text="Ver tabla A",       command=lambda: self._mostrar_tabla("Matriz A",  self.A)).pack(side="left",  padx=5)
         ttk.Button(bf, text="Ver tabla A3",      command=lambda: self._mostrar_tabla("Matriz A3", self.A3)).pack(side="left", padx=5)
 
@@ -529,6 +711,13 @@ class App(tk.Tk):
         hoja.enable_bindings(("single_select", "row_select",
                                "column_width_resize", "arrowkeys",
                                "right_click_popup_menu"))
+
+    def _mostrar_grafico_arbol(self, titulo, raiz_arbol):
+        """Abre la ventana emergente con la visualizacion grafica del arbol."""
+        if raiz_arbol is None:
+            messagebox.showwarning("Sin datos", "Primero genera la matriz para construir el arbol.")
+            return
+        VisualizadorArbol(self, raiz_arbol, titulo)
 
     def _mat_to_str(self, M, lim=10):
         """Convierte la matriz M a texto para mostrar en pantalla.
