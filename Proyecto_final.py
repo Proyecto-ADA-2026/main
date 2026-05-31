@@ -8,6 +8,7 @@ import random
 import sys
 import time
 import tracemalloc
+import json
 
 
 # =========================================================
@@ -709,7 +710,7 @@ def arbol_a_ascii(raiz):
             espacio_der += " "                                 # Agrega espacio.
         linea_centrada = espacio_izq + linea + espacio_der     # Arma la línea final centrada.
         lineas_centradas = lineas_centradas + [linea_centrada] # Agrega a la lista final de líneas centradas sin .append().
-    return unir_con_delimitador(lineas_centradas, "\n")        # Une las líneas usando saltos de línea con la función manual.
+    return "\n".join(lineas_centradas)                          # Une las líneas usando saltos de línea.
 
 
 def arbol_json_a_diccionario(raiz):

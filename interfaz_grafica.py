@@ -264,7 +264,7 @@ class App(tk.Tk):
                                font=("Segoe UI", 10, "bold"))
         self.status.pack(fill="x", padx=20, pady=(0, 12), ipady=6)
 
-    def _crear_texto_scroll(self, parent):
+    def _text_scroll(self, parent):
         frame = ttk.Frame(parent)
         frame.pack(fill="both", expand=True)
 
@@ -414,11 +414,11 @@ class App(tk.Tk):
             if len(lista_json_A) <= 63:
                 ascii_arbol_A = arbol_a_ascii(self.arbol_A)
             else:
-                ascii_A = "Arbol A generado (" + str(len(lista_A)) + " nodos). Busqueda disponible."
-            if len(lista_A3) <= 63:
+                ascii_A = "Arbol A generado (" + str(len(lista_json_A)) + " nodos). Busqueda disponible."
+            if len(lista_json_A3) <= 63:
                 ascii_A3 = arbol_a_ascii(self.arbol_A3)
             else:
-                ascii_A3 = "Arbol A3 generado (" + str(len(lista_A3)) + " nodos). Busqueda disponible."
+                ascii_A3 = "Arbol A3 generado (" + str(len(lista_json_A3)) + " nodos). Busqueda disponible."
             self._set_text(self.txt_arbol,
                            "ARBOL A:\n" + ascii_A + "\n\nARBOL A3:\n" + ascii_A3)
 
@@ -465,23 +465,23 @@ class App(tk.Tk):
             salida.append("------------------\n")
 
             salida.append("A ascendente:\n")
-            texto_A = str(vector_A_asc)
+            texto_A = str(va_asc)
             salida.append(texto_A[:1200] + ("..." if len(texto_A) > 1200 else ""))
 
             salida.append("\n\nA descendente:\n")
-            texto_A_desc = str(vector_A_desc)
+            texto_A_desc = str(va_desc)
             salida.append(texto_A_desc[:1200] + ("..." if len(texto_A_desc) > 1200 else ""))
 
             salida.append("\n\nA³ ascendente:\n")
-            texto_A3 = str(vector_A3_asc)
+            texto_A3 = str(va3_asc)
             salida.append(texto_A3[:1200] + ("..." if len(texto_A3) > 1200 else ""))
 
             salida.append("\n\nA³ descendente:\n")
-            texto_A3_desc = str(vector_A3_desc)
+            texto_A3_desc = str(va3_desc)
             salida.append(texto_A3_desc[:1200] + ("..." if len(texto_A3_desc) > 1200 else ""))
             salida.append("\n\nMEMORIA\n")
             salida.append("------\n")
-            salida.append(f"Estimación A: {estimacion_A} bytes\n")
+            salida.append(f"Estimación A: {estimacion} bytes\n")
             salida.append(f"Memoria actual: {mem_actual // 1024} KB\n")
             salida.append(f"Memoria pico: {mem_pico // 1024} KB\n")
             self._set_text(self.txt_result, "".join(salida))
