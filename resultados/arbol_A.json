@@ -1,64 +1,57 @@
 [
     {
         "id": 0,
-        "valor": 5,
+        "valor": 3,
         "cantidad": 1,
         "izquierda": 1,
-        "derecha": 5
+        "derecha": 4
     },
     {
         "id": 1,
         "valor": 1,
-        "cantidad": 1,
+        "cantidad": 2,
         "izquierda": 2,
         "derecha": 3
     },
     {
         "id": 2,
         "valor": 0,
-        "cantidad": 1,
+        "cantidad": 3,
         "izquierda": null,
         "derecha": null
     },
     {
         "id": 3,
         "valor": 2,
-        "cantidad": 1,
+        "cantidad": 4,
         "izquierda": null,
-        "derecha": 4
+        "derecha": null
     },
     {
         "id": 4,
-        "valor": 3,
+        "valor": 7,
+        "cantidad": 2,
+        "izquierda": 5,
+        "derecha": 6
+    },
+    {
+        "id": 5,
+        "valor": 4,
         "cantidad": 1,
         "izquierda": null,
         "derecha": null
     },
     {
-        "id": 5,
-        "valor": 7,
-        "cantidad": 3,
-        "izquierda": 6,
-        "derecha": 7
-    },
-    {
         "id": 6,
-        "valor": 6,
-        "cantidad": 2,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 7,
         "valor": 8,
         "cantidad": 2,
         "izquierda": null,
-        "derecha": 8
+        "derecha": 7
     },
     {
-        "id": 8,
+        "id": 7,
         "valor": 9,
-        "cantidad": 4,
+        "cantidad": 1,
         "izquierda": null,
         "derecha": null
     }

@@ -5,7 +5,6 @@ Contiene todos los algoritmos y estructuras de datos del taller.
 """
 
 import random
-import sys
 import time
 import tracemalloc
 import json
@@ -25,58 +24,6 @@ def crear_matriz(n):
             fila.append(random.randint(0, 9))
         matriz.append(fila)
     return matriz
-
-
-def guardar_matriz_directo_txt(n, nombre_archivo="matriz.txt"):
-    """Genera una matriz fila por fila y la escribe en un archivo TXT sin guardarla completa en memoria."""
-    with open(nombre_archivo, "w", encoding="utf-8") as archivo: # Abre el archivo en modo escritura con codificación UTF-8.
-        archivo.write("Matriz generada de tamaño " + str(n) + " x " + str(n) + "\n") # Escribe el encabezado con el tamaño.
-        linea_separadora = ""                                  # Inicializa un string vacío para la línea divisoria.
-        for _ in range(60):                                    # Itera 60 veces para construir la línea de caracteres.
-            linea_separadora += "="                            # Concatena un carácter '=' en cada ciclo.
-        archivo.write(linea_separadora + "\n\n")               # Escribe la línea divisoria seguida de dos saltos de línea.
-        for i in range(n):                                     # Itera n veces para generar cada una de las filas.
-            fila = []                                          # Inicializa la fila de texto como lista vacía.
-            for j in range(n):                                 # Itera n veces para rellenar las columnas de la fila actual.
-                valor = random.randint(0, 9)                   # Genera un número entero aleatorio entre 0 y 9.
-                fila = fila + [str(valor)]                     # Agrega el valor en formato texto a la lista de la fila.
-            linea_texto = ""                                   # Inicializa el string que representará la línea de la fila.
-            for k in range(len(fila)):                         # Recorre cada elemento de la fila.
-                formateado = ""                                # Inicializa el texto formateado.
-                num_str = fila[k]                              # Obtiene el string numérico.
-                espacios = 10 - len(num_str)                   # Calcula los espacios necesarios para un ancho fijo de 10.
-                formateado += num_str                          # Agrega el número al formateado.
-                for _ in range(espacios):                      # Agrega los espacios calculados uno por uno.
-                    formateado += " "                          # Agrega un espacio en blanco.
-                linea_texto += formateado                      # Concatena el elemento formateado a la línea.
-                if k < len(fila) - 1:                          # Si no es el último elemento, añade separación adicional.
-                   linea_texto += "   "                        # Agrega tres espacios como separador de columna.
-            archivo.write(linea_texto + "\n")                  # Escribe la línea formateada en el archivo.
-            if i % 100 == 0:                                   # Mide si la fila actual es múltiplo de 100 para dar feedback.
-                print("Generando fila " + str(i) + " de " + str(n) + "...") # Muestra en consola el progreso de la generación.
-    print("Matriz guardada correctamente en " + str(nombre_archivo)) # Imprime mensaje final en consola al finalizar.
-
-
-def multiplicar_matrices(x, y):
-    """Realiza la multiplicación de dos matrices n x n sin usar librerías externas ni .append()."""
-    n = len(x)                                                 # Obtiene la dimensión n de las matrices cuadradas.
-    y_transpuesta = []                                         # Inicializa la matriz transpuesta de y como lista vacía.
-    for j in range(n):                                         # Itera por cada columna de la matriz y.
-        columna = []                                           # Inicializa una lista vacía para almacenar la columna.
-        for i in range(n):                                     # Itera por cada fila de la matriz y.
-            columna = columna + [y[i][j]]                      # Agrega el elemento de la columna a la lista por concatenación.
-        y_transpuesta = y_transpuesta + [columna]              # Agrega la columna transpuesta a la matriz de transpuestas.
-    resultado = []                                             # Inicializa la matriz de resultados como lista vacía.
-    for i in range(n):                                         # Itera por cada fila de la matriz x.
-        fila_resultado = []                                    # Inicializa la fila del resultado de la iteración actual.
-        for j in range(n):                                     # Itera por cada columna transpuesta de y (que ahora son filas).
-            columna_y = y_transpuesta[j]                       # Obtiene la columna transpuesta correspondiente.
-            suma = 0                                           # Inicializa el acumulador de la multiplicación elemento a elemento.
-            for k in range(n):                                 # Itera por los elementos de la fila y la columna.
-                suma += x[i][k] * columna_y[k]                 # Multiplica los elementos y acumula el resultado en suma.
-            fila_resultado = fila_resultado + [suma]           # Agrega la suma acumulada a la fila resultado.
-        resultado = resultado + [fila_resultado]               # Agrega la fila completada a la matriz resultado final.
-    return resultado                                           # Retorna la matriz de resultados de la multiplicación.
 
 
 def guardar_A3_directo_txt(matriz_A, nombre_archivo="matriz_A3.txt"):
@@ -314,20 +261,6 @@ def frecuencias_a_json_ordenado(frecuencias):
     return lista_json
 
 
-def frecuencias_a_tuplas_ordenadas(frecuencias):
-    claves = []
-    for clave in frecuencias:
-        claves.append(clave)
-
-    claves_ordenadas = ordenar_ascendente(list(claves))
-
-    tuplas = []
-    for clave in claves_ordenadas:
-        tuplas.append((clave, frecuencias[clave]))
-
-    return tuplas
-
-
 def matriz_a_vector(matriz):
     vector = []
     for fila in matriz:
@@ -392,31 +325,17 @@ def ordenar_ascendente(vector):
 
 class NodoJSON:
     def __init__(self, valor, cantidad):
-        self.dato = {                                          # Inicializa el diccionario de datos del nodo.
-            "valor": valor,                                    # Clave 'valor' guarda el identificador del nodo.
-            "cantidad": cantidad                               # Clave 'cantidad' guarda la frecuencia del valor.
-        }                                                      # Cierra el diccionario de inicialización.
-        self.izquierda = None                                  # Puntero al subárbol izquierdo (menores).
-        self.derecha = None                                    # Puntero al subárbol derecho (mayores).
+        self.dato = {
+            "valor": valor,
+            "cantidad": cantidad,
+        }
+        self.izquierda = None
+        self.derecha = None
 
 
-class NodoFrecuencia:
-    def __init__(self, valor, cantidad):
-        self.dato = (valor, cantidad)                          # Guarda la tupla (valor, cantidad).
-        self.izquierda = None                                  # Puntero izquierdo inicializado en None.
-        self.derecha = None                                    # Puntero derecho inicializado en None.
-
-
-class Nodo:
-    def __init__(self, valor):
-        self.valor = valor                                     # Asigna el valor del nodo.
-        self.izquierda = None                                  # Puntero al hijo izquierdo.
-        self.derecha = None                                    # Puntero al hijo derecho.
-
-
-# ==============================================================================
-# ALGORITMOS DE CONSTRUCCIÓN DE ÁRBOLES EQUILIBRADOS (BST)
-# ==============================================================================
+# ======================================================================
+# ALGORITMOS DE CONSTRUCCIÓN DE ÁRBOLES EQUILIBRADOS (JSON BST)
+# ======================================================================
 
 def construir_arbol_json_equilibrado(lista_json, inicio, fin):
     # Construye un árbol binario de búsqueda equilibrado desde una lista JSON ordenada.
@@ -438,51 +357,6 @@ def construir_arbol_json_equilibrado(lista_json, inicio, fin):
     raiz.derecha = construir_arbol_json_equilibrado(lista_json, mitad + 1, fin)
 
     return raiz
-
-
-def construir_arbol_frecuencias_equilibrado(tuplas, inicio, fin):
-    if inicio > fin:
-        return None
-
-    mitad = (inicio + fin) // 2
-    valor = tuplas[mitad][0]
-    cantidad = tuplas[mitad][1]
-
-    raiz = NodoFrecuencia(valor, cantidad)
-    raiz.izquierda = construir_arbol_frecuencias_equilibrado(tuplas, inicio, mitad - 1)
-    raiz.derecha = construir_arbol_frecuencias_equilibrado(tuplas, mitad + 1, fin)
-    return raiz
-
-
-def construir_arbol_equilibrado(vector, inicio, fin):
-    # Construye un árbol binario de búsqueda equilibrado a partir de un vector ordenado.
-    # Primero se ordena el vector de elementos.
-    # Luego se toma el elemento central como raíz.
-    # La mitad izquierda forma el subárbol izquierdo.
-    # La mitad derecha forma el subárbol derecho.
-    # Este proceso se repite recursivamente para cada subvector.
-    # De esta forma se evita que el árbol quede como una cadena lineal.
-    if inicio > fin:
-        return None
-
-    mitad = (inicio + fin) // 2
-    raiz = Nodo(vector[mitad])
-    raiz.izquierda = construir_arbol_equilibrado(vector, inicio, mitad - 1)
-    raiz.derecha = construir_arbol_equilibrado(vector, mitad + 1, fin)
-    return raiz
-
-
-def buscar_en_arbol(raiz, buscado):
-    if raiz is None:
-        return False
-
-    valor_nodo = raiz.valor if hasattr(raiz, 'valor') else raiz.dato[0]
-
-    if buscado == valor_nodo:
-        return True
-    if buscado < valor_nodo:
-        return buscar_en_arbol(raiz.izquierda, buscado)
-    return buscar_en_arbol(raiz.derecha, buscado)
 
 
 def buscar_en_arbol_json(raiz, buscado):
@@ -526,41 +400,6 @@ def recorrido_inorden_json(raiz):
             recorrer(nodo.derecha)
 
     recorrer(raiz)
-    return resultado
-
-
-def buscar_en_arbol_frecuencias(raiz, buscado):
-    if raiz is None:
-        return None
-
-    valor_nodo = raiz.dato[0]
-    if buscado == valor_nodo:
-        return raiz.dato
-    if buscado < valor_nodo:
-        return buscar_en_arbol_frecuencias(raiz.izquierda, buscado)
-    return buscar_en_arbol_frecuencias(raiz.derecha, buscado)
-
-
-def contar_nodos_arbol_frecuencias(raiz):
-    if raiz is None:
-        return 0
-    return 1 + contar_nodos_arbol_frecuencias(raiz.izquierda) + contar_nodos_arbol_frecuencias(raiz.derecha)
-
-
-def altura_arbol(raiz):
-    if raiz is None:
-        return 0
-    altura_izq = altura_arbol(raiz.izquierda)
-    altura_der = altura_arbol(raiz.derecha)
-    return 1 + (altura_izq if altura_izq >= altura_der else altura_der)
-
-
-def recorrido_inorden_frecuencias(raiz):
-    resultado = []
-    if raiz is not None:
-        resultado.extend(recorrido_inorden_frecuencias(raiz.izquierda))
-        resultado.append(raiz.dato)
-        resultado.extend(recorrido_inorden_frecuencias(raiz.derecha))
     return resultado
 
 
