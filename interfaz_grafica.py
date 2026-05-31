@@ -1,13 +1,29 @@
+# =========================================================
+# IMPORTACIONES
+# =========================================================
+# tkinter permite construir la interfaz gráfica del programa.
+# Se importa como tk para crear ventanas, etiquetas, botones, cajas de texto
+# y campos de entrada.
 import tkinter as tk
-from tkinter import ttk, messagebox
-import os
-import subprocess
-import shutil
 
+# ttk contiene widgets visuales más modernos de tkinter.
+# messagebox permite mostrar alertas, errores y confirmaciones al usuario.
+from tkinter import ttk, messagebox
+
+# os permite manejar rutas, carpetas y archivos generados por el programa.
+# En este proyecto se usa para crear la carpeta resultados/ y abrir archivos.
+import os
+
+# Límite máximo permitido para n.
+# Esta restricción evita que el cálculo de A³ consuma demasiado tiempo o memoria,
+# porque A³ requiere multiplicaciones de matrices con costo O(n³).
 MAX_N = 150
 
+# tksheet es opcional. Solo se usa para mostrar matrices en forma de tabla.
+# Si no está instalado, el programa sigue funcionando y permite abrir los archivos .txt.
 try:
     import tksheet
+
     TKSHEET_DISPONIBLE = True
 except ImportError:
     TKSHEET_DISPONIBLE = False
@@ -16,9 +32,7 @@ except ImportError:
 # =========================================================
 # FRONTEND (INTERFAZ)
 # =========================================================
-# interfaz_grafica.py = interfaz/frontend
 # proyecto_final.py = lógica algorítmica/backend
-
 from Proyecto_final import (
     crear_matriz,
     calcular_A3,
@@ -34,7 +48,7 @@ from Proyecto_final import (
     buscar_en_arbol_json,
     medir_tiempo,
     arbol_a_ascii,
-    exportar_arbol_dot,
+    arbol_a_json_texto,
     iniciar_medicion_memoria,
     obtener_memoria_actual_y_pico,
     detener_medicion_memoria,
@@ -51,6 +65,8 @@ from Proyecto_final import (
 
 
 class App(tk.Tk):
+    """Ventana principal del proyecto."""
+
     def __init__(self):
         super().__init__()
 
@@ -125,6 +141,65 @@ class App(tk.Tk):
             padding=(12, 6),
         )
 
+    def _crear_texto_scroll(self, parent):
+        frame = ttk.Frame(parent)
+        frame.pack(fill="both", expand=True)
+
+        text = tk.Text(
+            frame,
+            wrap="none",
+            font=("Consolas", 11),
+            bg="#fbfbfb",
+            fg="#1f1f1f",
+            relief="flat",
+            padx=10,
+            pady=10,
+        )
+
+        scroll_y = ttk.Scrollbar(frame, orient="vertical", command=text.yview)
+        scroll_x = ttk.Scrollbar(frame, orient="horizontal", command=text.xview)
+        text.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
+
+        text.grid(row=0, column=0, sticky="nsew")
+        scroll_y.grid(row=0, column=1, sticky="ns")
+        scroll_x.grid(row=1, column=0, sticky="ew")
+
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
+
+        text.config(state="disabled")
+        return text
+
+    def _set_text(self, widget, content):
+        widget.config(state="normal")
+        widget.delete("1.0", "end")
+        widget.insert("1.0", content)
+        widget.config(state="disabled")
+
+    def _append_text(self, widget, content):
+        widget.config(state="normal")
+        widget.insert("end", content)
+        widget.see("end")
+        widget.config(state="disabled")
+
+    def _mat_to_str(self, M, vista_previa_dim=10):
+        n = len(M)
+
+        if n > 20:
+            limite = min(vista_previa_dim, n)
+            lineas = []
+            for i in range(limite):
+                lineas.append("   ".join(f"{v:6}" for v in M[i][:limite]))
+            return (
+                "\n".join(lineas)
+                + f"\n\n( Vista previa: {limite}x{limite} de la matriz {n}x{n} )"
+            )
+
+        lineas = []
+        for fila in M:
+            lineas.append("   ".join(f"{v:6}" for v in fila))
+        return "\n".join(lineas)
+
     def _build_ui(self):
         principal = ttk.Frame(self, style="Main.TFrame")
         principal.pack(fill="both", expand=True)
@@ -169,7 +244,6 @@ class App(tk.Tk):
             font=("Segoe UI", 10),
         ).pack(side="left", padx=10)
 
-        # Segunda fila de botones secundarios
         botones_frame = ttk.Frame(principal, style="Main.TFrame")
         botones_frame.pack(fill="x", padx=20, pady=(0, 10))
 
@@ -187,19 +261,19 @@ class App(tk.Tk):
         )
         self.btn_abrir_A3.pack(side="left", padx=5)
 
-        self.btn_ver_grafico_A = ttk.Button(
+        self.btn_abrir_json_A = ttk.Button(
             botones_frame,
-            text="Ver gráfico Árbol A",
-            command=lambda: self.generar_imagen_graphviz("arbol_A.dot", "arbol_A.png"),
+            text="Abrir JSON Árbol A",
+            command=lambda: self.abrir_archivo_resultado("arbol_A.json"),
         )
-        self.btn_ver_grafico_A.pack(side="left", padx=5)
+        self.btn_abrir_json_A.pack(side="left", padx=5)
 
-        self.btn_ver_grafico_A3 = ttk.Button(
+        self.btn_abrir_json_A3 = ttk.Button(
             botones_frame,
-            text="Ver gráfico Árbol A³",
-            command=lambda: self.generar_imagen_graphviz("arbol_A3.dot", "arbol_A3.png"),
+            text="Abrir JSON Árbol A³",
+            command=lambda: self.abrir_archivo_resultado("arbol_A3.json"),
         )
-        self.btn_ver_grafico_A3.pack(side="left", padx=5)
+        self.btn_abrir_json_A3.pack(side="left", padx=5)
 
         self.btn_ver_tabla_A = ttk.Button(
             botones_frame,
@@ -344,52 +418,11 @@ class App(tk.Tk):
         )
         self.status.pack(fill="x", padx=20, pady=(0, 12), ipady=6)
 
-    def _crear_texto_scroll(self, parent):
-        frame = ttk.Frame(parent)
-        frame.pack(fill="both", expand=True)
-
-        text = tk.Text(
-            frame,
-            wrap="none",
-            font=("Consolas", 11),
-            bg="#fbfbfb",
-            fg="#1f1f1f",
-            relief="flat",
-            padx=10,
-            pady=10,
-        )
-
-        scroll_y = ttk.Scrollbar(frame, orient="vertical", command=text.yview)
-        scroll_x = ttk.Scrollbar(frame, orient="horizontal", command=text.xview)
-        text.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
-
-        text.grid(row=0, column=0, sticky="nsew")
-        scroll_y.grid(row=0, column=1, sticky="ns")
-        scroll_x.grid(row=1, column=0, sticky="ew")
-
-        frame.rowconfigure(0, weight=1)
-        frame.columnconfigure(0, weight=1)
-
-        text.config(state="disabled")
-        return text
-
-    def _set_text(self, widget, content):
-        widget.config(state="normal")
-        widget.delete("1.0", "end")
-        widget.insert("1.0", content)
-        widget.config(state="disabled")
-
-    def _append_text(self, widget, content):
-        widget.config(state="normal")
-        widget.insert("end", content)
-        widget.see("end")
-        widget.config(state="disabled")
-
     def guardar_matriz_en_txt(self, nombre_archivo, matriz, titulo):
-        # Guarda en la carpeta resultados para mantener los archivos organizados.
         carpeta_resultados = "resultados"
         os.makedirs(carpeta_resultados, exist_ok=True)
         ruta_completa = os.path.join(carpeta_resultados, nombre_archivo)
+
         n = len(matriz)
         with open(ruta_completa, "w", encoding="utf-8") as f:
             f.write(f"{titulo}\n")
@@ -398,25 +431,47 @@ class App(tk.Tk):
             for fila in matriz:
                 f.write("   ".join(f"{v:10}" for v in fila) + "\n")
 
-    def _mat_to_str(self, M, vista_previa_dim=10):
-        n = len(M)
+    def guardar_texto_en_archivo(self, nombre_archivo, contenido):
+        carpeta_resultados = "resultados"
+        os.makedirs(carpeta_resultados, exist_ok=True)
+        ruta_completa = os.path.join(carpeta_resultados, nombre_archivo)
+        with open(ruta_completa, "w", encoding="utf-8") as f:
+            f.write(contenido)
 
-        # Vista previa si es grande
-        if n > 20:
-            limite = min(vista_previa_dim, n)
-            lineas = []
-            for i in range(limite):
-                lineas.append("   ".join(f"{v:6}" for v in M[i][:limite]))
-            return (
-                "\n".join(lineas)
-                + f"\n\n( Vista previa: {limite}x{limite} de la matriz {n}x{n} )"
+    def abrir_archivo_resultado(self, nombre_archivo):
+        ruta_archivo = os.path.join("resultados", nombre_archivo)
+        if not os.path.exists(ruta_archivo):
+            messagebox.showwarning("Archivo no encontrado", "Primero genera la matriz para crear el archivo.")
+            return
+        try:
+            os.startfile(ruta_archivo)
+        except Exception as error:
+            messagebox.showerror("Error", f"No se pudo abrir el archivo:\n{error}")
+
+    def mostrar_matriz_en_tabla(self, titulo, matriz):
+        if matriz is None:
+            messagebox.showwarning("Matriz no generada", "Primero genera la matriz para poder mostrarla.")
+            return
+
+        if not TKSHEET_DISPONIBLE:
+            messagebox.showinfo("tksheet no disponible", "Para ver la tabla instala tksheet o abre el archivo .txt.")
+            return
+
+        ventana = tk.Toplevel(self)
+        ventana.title(titulo)
+        ventana.geometry("900x600")
+
+        hoja = tksheet.Sheet(ventana, data=matriz)
+        hoja.pack(fill="both", expand=True)
+        hoja.enable_bindings(
+            (
+                "single_select",
+                "row_select",
+                "column_width_resize",
+                "arrowkeys",
+                "right_click_popup_menu",
             )
-
-        # Pequeña: toda
-        lineas = []
-        for fila in M:
-            lineas.append("   ".join(f"{v:6}" for v in fila))
-        return "\n".join(lineas)
+        )
 
     def generar(self):
         try:
@@ -450,17 +505,14 @@ class App(tk.Tk):
         try:
             iniciar_medicion_memoria()
             self.A = crear_matriz(n)
-            
-            # Para n > 100, usar función optimizada para guardar A³ (fila por fila)
+
             if n > 100:
                 self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
                 self.status.config(text="Estado: guardando A³ y calculando análisis...")
                 self.update_idletasks()
-                
-                # Calcula y guarda A³ de forma optimizada (fila por fila, sin guardar todo en memoria antes)
+
                 self.A3 = guardar_A3_directo_txt(self.A, os.path.join("resultados", "matriz_A3.txt"))
             else:
-                # Para n pequeño, comportamiento normal
                 self.A3 = calcular_A3(self.A)
                 self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
                 self.guardar_matriz_en_txt("matriz_A3.txt", self.A3, "Matriz A³")
@@ -471,11 +523,9 @@ class App(tk.Tk):
             rep_A = contar_repeticiones(self.A)
             rep_A3 = contar_repeticiones(self.A3)
 
-            rep_A = contar_repeticiones(self.A)
             lista_json_A = frecuencias_a_json_ordenado(rep_A)
             self.arbol_A = construir_arbol_json_equilibrado(lista_json_A, 0, len(lista_json_A) - 1)
 
-            rep_A3 = contar_repeticiones(self.A3)
             lista_json_A3 = frecuencias_a_json_ordenado(rep_A3)
             self.arbol_A3 = construir_arbol_json_equilibrado(lista_json_A3, 0, len(lista_json_A3) - 1)
 
@@ -487,11 +537,9 @@ class App(tk.Tk):
             vector_A_desc = invertir_vector(vector_A_asc)
             vector_A3_desc = invertir_vector(vector_A3_asc)
 
-            # UI: vista previa o matriz completa
             self._set_text(self.text_A, self._mat_to_str(self.A))
             self._set_text(self.text_A3, self._mat_to_str(self.A3))
 
-            # Mostrar ASCII del árbol solo si el árbol JSON no es demasiado grande
             if len(lista_json_A) <= 63:
                 ascii_arbol_A = arbol_a_ascii(self.arbol_A)
             else:
@@ -533,12 +581,9 @@ class App(tk.Tk):
             salida = []
             salida.append(resumen_analisis("RESUMEN MATRIZ A", analisis_A))
             salida.append("\nRepeticiones A:\n")
-            # Usar nuestro propio ordenamiento para las claves (evitar sorted())
             if rep_A:
                 claves_A = ordenar_ascendente(list(rep_A.keys()))
-                salida.append(
-                    ", ".join(f"{k}: {rep_A[k]}" for k in claves_A)
-                )
+                salida.append(", ".join(f"{k}: {rep_A[k]}" for k in claves_A))
             else:
                 salida.append("Sin datos")
 
@@ -547,14 +592,11 @@ class App(tk.Tk):
             salida.append("\nRepeticiones A³:\n")
             if rep_A3:
                 claves_A3 = ordenar_ascendente(list(rep_A3.keys()))
-                salida.append(
-                    ", ".join(f"{k}: {rep_A3[k]}" for k in claves_A3)
-                )
+                salida.append(", ".join(f"{k}: {rep_A3[k]}" for k in claves_A3))
             else:
                 salida.append("Sin datos")
 
-            salida.append("\n\nVECTORES ORDENADOS\n")
-            salida.append("------------------\n")
+            salida.append("\n\nVECTORES ORDENADOS\n------------------\n")
 
             salida.append("A ascendente:\n")
             texto_A = str(vector_A_asc)
@@ -571,56 +613,33 @@ class App(tk.Tk):
             salida.append("\n\nA³ descendente:\n")
             texto_A3_desc = str(vector_A3_desc)
             salida.append(texto_A3_desc[:1200] + ("..." if len(texto_A3_desc) > 1200 else ""))
-            salida.append("\n\nMEMORIA\n")
-            salida.append("------\n")
+
+            salida.append("\n\nMEMORIA\n------\n")
             salida.append(f"Estimación A: {estimacion_A} bytes\n")
             salida.append(f"Memoria actual: {mem_actual // 1024} KB\n")
             salida.append(f"Memoria pico: {mem_pico // 1024} KB\n")
+
             self._set_text(self.txt_result, "".join(salida))
 
             if n > 20:
-                self.status.config(
-                    text="Estado: matriz generada. Vista previa en interfaz y .txt guardados (matriz_A.txt, matriz_A3.txt)."
-                )
+                self.status.config(text="Estado: matriz generada. Vista previa en interfaz y .txt guardados (matriz_A.txt, matriz_A3.txt).")
             else:
                 self.status.config(text="Estado: matriz generada correctamente. Ya puedes buscar un número.")
 
-            # Exportar DOT para árboles pequeños y generar un mensaje para los grandes.
-            nodos_A = self.contar_nodos_arbol(self.arbol_A)
-            nodos_A3 = self.contar_nodos_arbol(self.arbol_A3)
+            # Exportar a JSON (sin Graphviz)
+            contenido_A_json = arbol_a_json_texto(self.arbol_A)
+            contenido_A3_json = arbol_a_json_texto(self.arbol_A3)
 
-            if nodos_A <= 100:
-                contenido_A = exportar_arbol_dot(self.arbol_A, "ArbolA")
-            else:
-                contenido_A = (
-                    "// El árbol fue generado correctamente, pero no se exporta completo "
-                    "porque tiene demasiados nodos.\n"
-                    f"Nodos: {nodos_A}\n"
-                )
-
-            if nodos_A3 <= 100:
-                contenido_A3 = exportar_arbol_dot(self.arbol_A3, "ArbolA3")
-            else:
-                contenido_A3 = (
-                    "// El árbol fue generado correctamente, pero no se exporta completo "
-                    "porque tiene demasiados nodos.\n"
-                    f"Nodos: {nodos_A3}\n"
-                )
-
-            self.guardar_texto_en_archivo("arbol_A.dot", contenido_A)
-            self.guardar_texto_en_archivo("arbol_A3.dot", contenido_A3)
+            self.guardar_texto_en_archivo("arbol_A.json", contenido_A_json)
+            self.guardar_texto_en_archivo("arbol_A3.json", contenido_A3_json)
 
         except Exception as error:
             messagebox.showerror("Error", f"Ocurrió un problema al generar la matriz:\n{error}")
             self.status.config(text="Estado: ocurrió un error al generar la matriz.")
 
     def buscar(self):
-        if (
-            self.A is None
-            or self.A3 is None
-            or self.arbol_A is None
-            or self.arbol_A3 is None
-        ):
+
+        if self.A is None or self.A3 is None or self.arbol_A is None or self.arbol_A3 is None:
             messagebox.showwarning("Aviso", "Primero genera la matriz A y A³.")
             return
 
@@ -634,12 +653,16 @@ class App(tk.Tk):
         self.update_idletasks()
 
         resultado_matriz_A, tiempo_matriz_A = medir_tiempo(buscar_y_contar_en_matriz, self.A, buscado)
-        encontrado_matriz_A, cantidad_matriz_A = resultado_matriz_A
         resultado_arbol_A, tiempo_arbol_A = medir_tiempo(buscar_en_arbol_json, self.arbol_A, buscado)
 
         resultado_matriz_A3, tiempo_matriz_A3 = medir_tiempo(buscar_y_contar_en_matriz, self.A3, buscado)
-        encontrado_matriz_A3, cantidad_matriz_A3 = resultado_matriz_A3
         resultado_arbol_A3, tiempo_arbol_A3 = medir_tiempo(buscar_en_arbol_json, self.arbol_A3, buscado)
+
+        encontrado_matriz_A = resultado_matriz_A is not None
+        cantidad_matriz_A = resultado_matriz_A["cantidad"] if resultado_matriz_A is not None else 0
+
+        encontrado_matriz_A3 = resultado_matriz_A3 is not None
+        cantidad_matriz_A3 = resultado_matriz_A3["cantidad"] if resultado_matriz_A3 is not None else 0
 
         cantidad_arbol_A = resultado_arbol_A["cantidad"] if resultado_arbol_A is not None else 0
         cantidad_arbol_A3 = resultado_arbol_A3["cantidad"] if resultado_arbol_A3 is not None else 0
@@ -660,123 +683,7 @@ class App(tk.Tk):
         self._append_text(self.txt_result, mensaje)
         self.status.config(text="Estado: búsqueda completada.")
 
-    def generar_imagen_graphviz(self, archivo_dot, archivo_salida):
-        # Reemplazado: ahora se busca el ejecutable 'dot' y se usa su ruta completa
-        ruta_dot = os.path.join("resultados", archivo_dot)
-        ruta_salida = os.path.join("resultados", archivo_salida)
 
-        # Verificar si el archivo DOT existe
-        if not os.path.exists(ruta_dot):
-            messagebox.showwarning(
-                "Archivo no encontrado",
-                "Primero genera la matriz para crear el árbol."
-            )
-            return
-
-        # Verificar contenido por indicación de árbol grande (si aplica)
-        try:
-            with open(ruta_dot, "r", encoding="utf-8") as f:
-                contenido = f.read()
-                if "demasiados nodos" in contenido:
-                    messagebox.showinfo(
-                        "Árbol muy grande",
-                        "El árbol fue generado, pero no se visualiza completo porque tiene demasiados nodos. "
-                        "Use n pequeño (por ejemplo 4 a 8) para ver el árbol visual."
-                    )
-                    return
-        except Exception:
-            pass
-
-        # Localizar ejecutable 'dot'
-        dot_exec = self.find_dot_executable()
-        if not dot_exec:
-            messagebox.showerror(
-                "Graphviz no encontrado",
-                "Graphviz no está instalado o no está agregado al PATH.\n\n"
-                "Instale Graphviz desde https://graphviz.org/download/ y verifique con:\n"
-                "  dot -V"
-            )
-            return
-
-        # Ejecutar Graphviz usando la ruta completa encontrada
-        try:
-            subprocess.run([dot_exec, "-Tpng", ruta_dot, "-o", ruta_salida], check=True, capture_output=True)
-            os.startfile(ruta_salida)
-        except subprocess.CalledProcessError as e:
-            messagebox.showerror("Error al generar imagen", f"No se pudo generar la imagen del árbol.\n{e}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Ocurrió un error inesperado:\n{e}")
-
-    def find_dot_executable(self):
-        """
-        Busca el ejecutable 'dot' de Graphviz únicamente en el PATH.
-
-        Graphviz se usa solo para visualizar el árbol en imagen.
-        No construye el árbol ni reemplaza ningún algoritmo del proyecto.
-        """
-        try:
-            return shutil.which("dot")
-        except Exception:
-            return None
-
-    def guardar_texto_en_archivo(self, nombre_archivo, contenido):
-        carpeta_resultados = "resultados"
-        os.makedirs(carpeta_resultados, exist_ok=True)
-        ruta_completa = os.path.join(carpeta_resultados, nombre_archivo)
-        with open(ruta_completa, "w", encoding="utf-8") as archivo:
-            archivo.write(contenido)
-
-    def abrir_archivo_resultado(self, nombre_archivo):
-        ruta_archivo = os.path.join("resultados", nombre_archivo)
-
-        if not os.path.exists(ruta_archivo):
-            messagebox.showwarning(
-                "Archivo no encontrado",
-                "Primero genera la matriz para crear el archivo."
-            )
-            return
-
-        try:
-            os.startfile(ruta_archivo)
-        except Exception as error:
-            messagebox.showerror(
-                "Error",
-                f"No se pudo abrir el archivo:\n{error}"
-            )
-
-    def abrir_archivo_txt(self, nombre_archivo):
-        self.abrir_archivo_resultado(nombre_archivo)
-
-    def contar_nodos_arbol(self, raiz):
-        if raiz is None:
-            return 0
-        return 1 + self.contar_nodos_arbol(raiz.izquierda) + self.contar_nodos_arbol(raiz.derecha)
-
-    def mostrar_matriz_en_tabla(self, titulo, matriz):
-        if matriz is None:
-            messagebox.showwarning(
-                "Matriz no generada",
-                "Primero genera la matriz para poder mostrarla."
-            )
-            return
-
-        if not TKSHEET_DISPONIBLE:
-            messagebox.showinfo(
-                "tksheet no disponible",
-                "Para ver la tabla instala tksheet o abre el archivo .txt."
-            )
-            return
-
-        ventana = tk.Toplevel(self)
-        ventana.title(titulo)
-        ventana.geometry("900x600")
-
-        hoja = tksheet.Sheet(ventana, data=matriz)
-        hoja.pack(fill="both", expand=True)
-
-        hoja.enable_bindings(
-            ("single_select", "row_select", "column_width_resize", "arrowkeys", "right_click_popup_menu")
-        )
 # MAIN
 # =========================================================
 
