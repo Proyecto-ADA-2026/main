@@ -513,8 +513,6 @@ class App(tk.Tk):
             vec_A3  = matriz_a_vector(self.A3)
             va_asc  = ordenar_ascendente(vec_A)
             va3_asc = ordenar_ascendente(vec_A3)
-            va_desc = invertir_vector(va_asc)
-            va3_desc= invertir_vector(va3_asc)
 
             # UI: vista previa o matriz completa
             self._set_text(self.text_A, self._mat_to_str(self.A))
@@ -538,14 +536,30 @@ class App(tk.Tk):
             estimacion = estimar_memoria_matriz(n)
 
             def resumen_analisis(nombre, analisis):
+                def limitar_valores(valores, limite=30):
+                    texto = str(valores[:limite])
+                    if len(valores) > limite:
+                        texto += " ..."
+                    return texto
+
                 return (
                     f"{nombre}\n"
                     f"{'-' * len(nombre)}\n"
+
                     f"Pares: {analisis['pares']['cantidad']}\n"
+                    f"Números: {limitar_valores(analisis['pares']['valores'])}\n\n"
+
                     f"Impares: {analisis['impares']['cantidad']}\n"
+                    f"Números: {limitar_valores(analisis['impares']['valores'])}\n\n"
+
                     f"Primos: {analisis['primos']['cantidad']}\n"
+                    f"Números: {limitar_valores(analisis['primos']['valores'])}\n\n"
+
                     f"Perfectos: {analisis['perfectos']['cantidad']}\n"
+                    f"Números: {limitar_valores(analisis['perfectos']['valores'])}\n\n"
+
                     f"Cuadrados perfectos: {analisis['cuadrados']['cantidad']}\n"
+                    f"Números: {limitar_valores(analisis['cuadrados']['valores'])}\n"
                 )
 
             salida = []
@@ -578,17 +592,9 @@ class App(tk.Tk):
             texto_A = str(va_asc)
             salida.append(texto_A[:1200] + ("..." if len(texto_A) > 1200 else ""))
 
-            salida.append("\n\nA descendente:\n")
-            texto_A_desc = str(va_desc)
-            salida.append(texto_A_desc[:1200] + ("..." if len(texto_A_desc) > 1200 else ""))
-
             salida.append("\n\nA³ ascendente:\n")
             texto_A3 = str(va3_asc)
             salida.append(texto_A3[:1200] + ("..." if len(texto_A3) > 1200 else ""))
-
-            salida.append("\n\nA³ descendente:\n")
-            texto_A3_desc = str(va3_desc)
-            salida.append(texto_A3_desc[:1200] + ("..." if len(texto_A3_desc) > 1200 else ""))
             salida.append("\n\nMEMORIA\n")
             salida.append("------\n")
             salida.append(f"Estimación A: {estimacion} bytes\n")

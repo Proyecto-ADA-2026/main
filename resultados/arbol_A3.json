@@ -1,66 +1,114 @@
-{
-    "valor": 636,
-    "cantidad": 1,
-    "izquierda": {
-        "valor": 325,
+[
+    {
+        "id": 0,
+        "valor": 3323,
         "cantidad": 1,
-        "izquierda": {
-            "valor": 150,
-            "cantidad": 2,
-            "izquierda": null,
-            "derecha": {
-                "valor": 175,
-                "cantidad": 1,
-                "izquierda": null,
-                "derecha": null
-            }
-        },
-        "derecha": {
-            "valor": 480,
-            "cantidad": 2,
-            "izquierda": {
-                "valor": 360,
-                "cantidad": 1,
-                "izquierda": null,
-                "derecha": null
-            },
-            "derecha": {
-                "valor": 520,
-                "cantidad": 2,
-                "izquierda": null,
-                "derecha": null
-            }
-        }
+        "izquierda": 1,
+        "derecha": 8
     },
-    "derecha": {
-        "valor": 864,
+    {
+        "id": 1,
+        "valor": 3007,
         "cantidad": 1,
-        "izquierda": {
-            "valor": 666,
-            "cantidad": 1,
-            "izquierda": null,
-            "derecha": {
-                "valor": 729,
-                "cantidad": 1,
-                "izquierda": null,
-                "derecha": null
-            }
-        },
-        "derecha": {
-            "valor": 1014,
-            "cantidad": 1,
-            "izquierda": {
-                "valor": 910,
-                "cantidad": 1,
-                "izquierda": null,
-                "derecha": null
-            },
-            "derecha": {
-                "valor": 1263,
-                "cantidad": 1,
-                "izquierda": null,
-                "derecha": null
-            }
-        }
+        "izquierda": 2,
+        "derecha": 5
+    },
+    {
+        "id": 2,
+        "valor": 2990,
+        "cantidad": 1,
+        "izquierda": 3,
+        "derecha": 4
+    },
+    {
+        "id": 3,
+        "valor": 2840,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
+    },
+    {
+        "id": 4,
+        "valor": 2993,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
+    },
+    {
+        "id": 5,
+        "valor": 3209,
+        "cantidad": 1,
+        "izquierda": 6,
+        "derecha": 7
+    },
+    {
+        "id": 6,
+        "valor": 3094,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
+    },
+    {
+        "id": 7,
+        "valor": 3233,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
+    },
+    {
+        "id": 8,
+        "valor": 3816,
+        "cantidad": 1,
+        "izquierda": 9,
+        "derecha": 12
+    },
+    {
+        "id": 9,
+        "valor": 3658,
+        "cantidad": 1,
+        "izquierda": 10,
+        "derecha": 11
+    },
+    {
+        "id": 10,
+        "valor": 3495,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
+    },
+    {
+        "id": 11,
+        "valor": 3804,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
+    },
+    {
+        "id": 12,
+        "valor": 3912,
+        "cantidad": 1,
+        "izquierda": 13,
+        "derecha": 14
+    },
+    {
+        "id": 13,
+        "valor": 3905,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
+    },
+    {
+        "id": 14,
+        "valor": 3986,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": 15
+    },
+    {
+        "id": 15,
+        "valor": 4491,
+        "cantidad": 1,
+        "izquierda": null,
+        "derecha": null
     }
-}
+]
