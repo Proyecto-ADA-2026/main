@@ -1,786 +1,808 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
-import os
-import subprocess
-import shutil
+"""
+interfaz_grafica.py
+Frontend del proyecto: ventana grafica, botones y visualizacion de resultados.
+Backend (algoritmos puros): Proyecto_final.py
 
-MAX_N = 150
+Restricciones aplicadas:
+  - Sin .append()      -> lista = lista + [elemento]
+  - Sin .join()        -> for + += construyen el string
+  - Sin set()          -> for + while eliminan duplicados manualmente
+  - Sin os.makedirs    -> os.mkdir en try/except
+  - Sin os.path.exists -> open() en try/except
+  - Sin os.path.join   -> concatenacion de strings con +
+  - Sin json.dump      -> JSON escrito caracter a caracter con recursion
+  - Librerias permitidas: tkinter (GUI), os (solo mkdir y startfile)
+"""
+
+import tkinter as tk                 # Libreria para crear la ventana grafica en escritorio
+from tkinter import ttk, messagebox  # ttk = widgets modernos; messagebox = dialogos de alerta
+import os                            # Solo se usa os.mkdir y os.startfile (no hay alternativa pura en Python)
+
+MAX_N = 150                          # Tamano maximo de n (A3 cuesta O(n3) en tiempo y O(n2) en memoria)
 
 try:
-    import tksheet
+    import tksheet                   # Hoja de calculo interactiva (opcional)
     TKSHEET_DISPONIBLE = True
 except ImportError:
-    TKSHEET_DISPONIBLE = False
-
-
-# =========================================================
-# FRONTEND (INTERFAZ)
-# =========================================================
-# interfaz_grafica.py = interfaz/frontend
-# proyecto_final.py = lógica algorítmica/backend
+    TKSHEET_DISPONIBLE = False       # Si no esta instalada, los botones de tabla mostraran aviso
 
 from Proyecto_final import (
-    crear_matriz,
-    calcular_A3,
-    guardar_A3_directo_txt,
-    analizar_matriz,
-    contar_repeticiones,
-    frecuencias_a_json_ordenado,
-    matriz_a_vector,
-    ordenar_ascendente,
-    invertir_vector,
-    construir_arbol_json_equilibrado,
-    buscar_y_contar_en_matriz,
-    buscar_en_arbol_json,
-    medir_tiempo,
-    arbol_a_ascii,
-    exportar_arbol_dot,
-    iniciar_medicion_memoria,
-    obtener_memoria_actual_y_pico,
-    detener_medicion_memoria,
-    estimar_memoria_matriz,
-    contar_nodos_arbol_json,
-    altura_arbol_json,
-    recorrido_inorden_json,
+    crear_matriz,                     # Genera matriz n*n con numeros aleatorios 0-9
+    calcular_A3,                      # Calcula A3 = A*A*A con multiplicacion propia O(n3)
+    guardar_A3_directo_txt,           # Calcula y guarda A3 fila por fila para matrices grandes
+    analizar_matriz,                  # Clasifica cada elemento: par, impar, primo, perfecto, cuadrado
+    contar_repeticiones,              # Cuenta cuantas veces aparece cada valor en la matriz
+    frecuencias_a_json_ordenado,      # Convierte el dict de frecuencias a lista de dicts ordenada
+    matriz_a_vector,                  # Aplana la matriz n*n en un vector de n2 elementos
+    ordenar_ascendente,               # Ordena de menor a mayor (algoritmo propio, sin sorted())
+    invertir_vector,                  # Invierte el vector para obtener el orden descendente
+    construir_arbol_json_equilibrado, # Construye BST equilibrado desde lista ordenada
+    buscar_y_contar_en_matriz,        # Busqueda lineal O(n2) en la matriz con conteo
+    buscar_en_arbol_json,             # Busqueda binaria O(log n) en el arbol BST
+    medir_tiempo,                     # Mide nanosegundos que tarda una funcion
+    arbol_a_ascii,                    # Convierte el arbol a dibujo ASCII con ramas / y \
+    iniciar_medicion_memoria,         # Inicia tracemalloc para medir RAM usada
+    obtener_memoria_actual_y_pico,    # Lee uso actual y pico de RAM desde tracemalloc
+    detener_medicion_memoria,         # Detiene tracemalloc y libera sus recursos
+    estimar_memoria_matriz,           # Estimacion teorica de bytes que ocupa la matriz
+    contar_nodos_arbol_json,          # Cuenta todos los nodos del arbol recursivamente
+    altura_arbol_json,                # Calcula la altura (niveles) del arbol
+    recorrido_inorden_json,           # Recorre el arbol en inorden (menor a mayor)
 )
 
 
-# =========================================================
-# INTERFAZ GRÁFICA
-# =========================================================
+# ================================================================
+# CLASE: GestorArchivos
+# Responsabilidad: toda la escritura y lectura de archivos.
+# No usa os.makedirs, os.path.exists, os.path.join ni json.dump.
+# ================================================================
 
+class GestorArchivos:
+    """Maneja la creacion de la carpeta de resultados y la escritura de archivos.
+
+    Reglas:
+      - No usa os.makedirs  -> os.mkdir en try/except
+      - No usa os.path.join -> concatenacion de strings con +
+      - No usa os.path.exists -> open() en try/except
+      - No usa json.dump    -> _nodo_a_texto_json() escribe el JSON manualmente
+    """
+
+    CARPETA = "resultados"           # Carpeta donde se guardan todos los archivos generados
+
+    def crear_carpeta(self):
+        """Crea la carpeta 'resultados' si no existe.
+        Usa os.mkdir en try/except: si ya existe, el error se ignora.
+        """
+        try:
+            os.mkdir(self.CARPETA)   # Intenta crear la carpeta
+        except:
+            pass                     # Si ya existe o hay otro error, lo ignora silenciosamente
+
+    def _ruta(self, nombre_archivo):
+        """Construye la ruta completa sin os.path.join: concatena carpeta + nombre."""
+        return self.CARPETA + "\\" + nombre_archivo  # Barra invertida de Windows
+
+    def archivo_existe(self, nombre_archivo):
+        """Verifica si un archivo existe intentando abrirlo en lectura (sin os.path.exists)."""
+        ruta = self._ruta(nombre_archivo)
+        try:
+            f = open(ruta, "r", encoding="utf-8")  # Intenta abrir el archivo en lectura
+            f.close()                               # Si se pudo abrir, lo cierra de inmediato
+            return True                             # El archivo existe
+        except:
+            return False                            # No se pudo abrir: el archivo no existe
+
+    def guardar_txt(self, nombre_archivo, contenido):
+        """Guarda un string de texto en un archivo .txt dentro de 'resultados'."""
+        self.crear_carpeta()
+        ruta = self._ruta(nombre_archivo)
+        f = open(ruta, "w", encoding="utf-8")       # Abre en modo escritura
+        f.write(contenido)                          # Escribe el contenido
+        f.close()                                   # Cierra el archivo manualmente
+
+    def guardar_matriz(self, nombre_archivo, matriz, titulo):
+        """Guarda una matriz completa en un archivo .txt con encabezado.
+        Construye cada linea con for e if, sin .join().
+        """
+        self.crear_carpeta()
+        ruta = self._ruta(nombre_archivo)
+        n = len(matriz)
+        f = open(ruta, "w", encoding="utf-8")
+
+        f.write(titulo + "\n")
+        f.write("Tamano: " + str(n) + "x" + str(n) + "\n")
+
+        sep = ""
+        for i in range(60):                         # Construye "=" x 60 con for, sin "*"
+            sep += "="
+        f.write(sep + "\n\n")
+
+        for fila in matriz:                         # Recorre cada fila
+            linea = ""
+            for i in range(len(fila)):              # Recorre cada elemento de la fila
+                linea += f"{fila[i]:10}"            # Formato 10 caracteres por numero
+                if i < len(fila) - 1:              # Si no es el ultimo
+                    linea += "   "                  # Tres espacios entre columnas
+            f.write(linea + "\n")
+
+        f.close()
+
+    def _nodo_a_texto_json(self, nodo_dict, sangria):
+        """Convierte recursivamente un nodo del arbol a texto JSON sin json.dump.
+
+        Caso base : nodo_dict es None -> devuelve "null"
+        Caso rec. : dict con valor/cantidad/izquierda/derecha -> objeto JSON anidado
+
+        Parametros:
+          nodo_dict : dict {"valor", "cantidad", "izquierda", "derecha"} o None
+          sangria   : string de espacios para la indentacion del nivel actual
+        """
+        if nodo_dict is None:                       # Nodo vacio -> JSON null
+            return "null"
+
+        s = sangria + "  "                          # Sangria del nivel hijo (2 espacios mas)
+        resultado = "{\n"
+        resultado += s + '"valor": '     + str(nodo_dict["valor"])     + ",\n"
+        resultado += s + '"cantidad": '  + str(nodo_dict["cantidad"])  + ",\n"
+        resultado += s + '"izquierda": ' + self._nodo_a_texto_json(nodo_dict["izquierda"], s) + ",\n"
+        resultado += s + '"derecha": '   + self._nodo_a_texto_json(nodo_dict["derecha"],   s) + "\n"
+        resultado += sangria + "}"                  # Cierra el objeto JSON
+        return resultado
+
+    def guardar_arbol_json(self, nombre_archivo, dict_arbol, nombre_id):
+        """Escribe el arbol BST como archivo .json construido manualmente con +=."""
+        self.crear_carpeta()
+        ruta = self._ruta(nombre_archivo)
+
+        texto = "{\n"
+        texto += '  "arbol": "' + nombre_id + '",\n'
+        texto += '  "descripcion": "BST equilibrado. Nodos: valor, cantidad, izquierda, derecha.",\n'
+        texto += '  "estructura": '
+        texto += self._nodo_a_texto_json(dict_arbol, "  ")  # JSON del arbol recursivo
+        texto += "\n}"
+
+        f = open(ruta, "w", encoding="utf-8")
+        f.write(texto)
+        f.close()
+
+    def abrir_archivo(self, nombre_archivo):
+        """Abre un archivo de 'resultados' con el programa predeterminado del SO.
+        Devuelve True si pudo, False si el archivo no existe.
+        """
+        if not self.archivo_existe(nombre_archivo):
+            return False
+        ruta = self._ruta(nombre_archivo)
+        try:
+            os.startfile(ruta)                      # Abre con el programa predeterminado (Bloc de notas, etc.)
+            return True
+        except:
+            return False
+
+
+# ================================================================
+# CLASE: ConstructorTexto
+# Responsabilidad: construir el string del panel de resultados.
+# Sin .append(), .join(), set(). Solo for, while, if, +=.
+# ================================================================
+
+class ConstructorTexto:
+    """Genera el texto del panel 'Resumen y analisis' con estructuras de control basicas."""
+
+    def quitar_duplicados(self, lista):
+        """Elimina valores repetidos de una lista.
+        No usa set(): busca con while si el valor ya esta antes de agregarlo.
+        """
+        unicos = []
+        for val in lista:
+            esta = False
+            i = 0
+            while i < len(unicos):                 # Busca manualmente si ya fue agregado
+                if unicos[i] == val:
+                    esta = True
+                    break
+                i += 1
+            if not esta:
+                unicos = unicos + [val]             # Concatenacion en lugar de .append()
+        return unicos
+
+    def lista_a_texto(self, lista, max_mostrar):
+        """Convierte una lista de enteros a string "v1, v2, v3..." sin .join().
+        Si hay mas de max_mostrar elementos, muestra los primeros y agrega '... (+N mas)'.
+        """
+        if len(lista) == 0:
+            return "  (ninguno)"
+
+        texto = "  "                               # Sangria al inicio
+        total = len(lista)
+
+        if total <= max_mostrar:
+            for i in range(total):
+                texto += str(lista[i])
+                if i < total - 1:
+                    texto += ", "
+            return texto
+
+        for i in range(max_mostrar):               # Solo los primeros max_mostrar
+            texto += str(lista[i])
+            if i < max_mostrar - 1:
+                texto += ", "
+        texto += " ... (+" + str(total - max_mostrar) + " mas)"
+        return texto
+
+    def separador_igual(self, longitud):
+        """Genera una linea de '=' de la longitud dada, sin usar el operador '*'."""
+        linea = ""
+        for i in range(longitud):
+            linea += "="
+        return linea
+
+    def bloque_categoria(self, etiqueta, cantidad, valores):
+        """Genera dos lineas para una categoria: 'Etiqueta: N' y '  v1, v2...'"""
+        unicos = self.quitar_duplicados(valores)   # Elimina duplicados manualmente
+        unicos = ordenar_ascendente(unicos)        # Ordena con el algoritmo propio del backend
+        texto  = etiqueta + ": " + str(cantidad) + "\n"
+        texto += self.lista_a_texto(unicos, 30) + "\n"
+        return texto
+
+    def resumen_matriz(self, titulo, analisis):
+        """Genera el bloque completo de resumen para una matriz (A o A3)."""
+        sep   = self.separador_igual(len(titulo))
+        texto = titulo + "\n" + sep + "\n"
+        texto += self.bloque_categoria("Pares          ", analisis["pares"]["cantidad"],     analisis["pares"]["valores"])
+        texto += self.bloque_categoria("Impares        ", analisis["impares"]["cantidad"],   analisis["impares"]["valores"])
+        texto += self.bloque_categoria("Primos         ", analisis["primos"]["cantidad"],    analisis["primos"]["valores"])
+        texto += self.bloque_categoria("Perfectos      ", analisis["perfectos"]["cantidad"], analisis["perfectos"]["valores"])
+        texto += self.bloque_categoria("Cuadrados perf.", analisis["cuadrados"]["cantidad"], analisis["cuadrados"]["valores"])
+        return texto
+
+    def repeticiones_a_texto(self, rep):
+        """Convierte el dict de repeticiones a string 'v: n, v: n...'
+        Extrae claves con for (sin .keys() ni list()), ordena y concatena con +=.
+        """
+        claves = []
+        for k in rep:                              # Itera sobre las claves del dict
+            claves = claves + [k]                  # Sin .append()
+        claves = ordenar_ascendente(claves)        # Ordena las claves
+
+        texto = ""
+        for i in range(len(claves)):
+            texto += str(claves[i]) + ": " + str(rep[claves[i]])
+            if i < len(claves) - 1:
+                texto += ", "
+        return texto
+
+    def vector_a_texto(self, vector, max_chars):
+        """Convierte un vector a string '[v1, v2, v3]' con limite de caracteres.
+        Sin str(lista) ni .join(). Construye el string con for e if.
+        """
+        texto = "["
+        for i in range(len(vector)):
+            texto += str(vector[i])
+            if i < len(vector) - 1:
+                texto += ", "
+        texto += "]"
+        if len(texto) > max_chars:
+            return texto[:max_chars] + "..."
+        return texto
+
+    def construir_salida(self, analisis_A, analisis_A3, rep_A, rep_A3,
+                          va_asc, va_desc, va3_asc, va3_desc,
+                          mem_actual, mem_pico, estimacion):
+        """Construye el texto completo del panel de resultados.
+        Solo usa +=, for e if. Sin .append(), .join() ni str(lista).
+        """
+        salida = ""
+
+        salida += self.resumen_matriz("RESUMEN MATRIZ A", analisis_A)
+        salida += "\nRepeticiones A:\n"
+        salida += self.repeticiones_a_texto(rep_A)
+
+        salida += "\n\n"
+
+        salida += self.resumen_matriz("RESUMEN MATRIZ A3", analisis_A3)
+        salida += "\nRepeticiones A3:\n"
+        salida += self.repeticiones_a_texto(rep_A3)
+
+        salida += "\n\nVECTORES ORDENADOS\n"
+        salida += "------------------\n"
+        salida += "A ascendente:\n"    + self.vector_a_texto(va_asc,  1200)
+        salida += "\n\nA descendente:\n"  + self.vector_a_texto(va_desc, 1200)
+        salida += "\n\nA3 ascendente:\n"  + self.vector_a_texto(va3_asc, 1200)
+        salida += "\n\nA3 descendente:\n" + self.vector_a_texto(va3_desc,1200)
+
+        salida += "\n\nMEMORIA\n"
+        salida += "-------\n"
+        salida += "Estimacion A   : " + str(estimacion)         + " bytes\n"
+        salida += "Memoria actual : " + str(mem_actual // 1024) + " KB\n"
+        salida += "Memoria pico   : " + str(mem_pico   // 1024) + " KB\n"
+
+        return salida
+
+
+# ================================================================
+# CLASE: App (ventana principal)
+# Responsabilidad: construir la GUI y manejar los eventos del usuario.
+# ================================================================
 
 class App(tk.Tk):
-    def __init__(self):
-        super().__init__()
+    """Ventana principal de la aplicacion. Hereda de tk.Tk."""
 
-        self.title("Análisis de Matriz A, A³ y Árbol Binario")
+    def __init__(self):
+        """Constructor: inicializa la ventana, crea los objetos auxiliares y construye la UI."""
+        super().__init__()                          # Llama al constructor de tk.Tk
+
+        self.title("Analisis de Matriz A, A3 y Arbol Binario")
         self.geometry("1280x820")
         self.minsize(1080, 720)
         self.configure(bg="#f4f6f9")
 
-        self.A = None
-        self.A3 = None
-        self.arbol_A = None
-        self.arbol_A3 = None
+        # Variables de estado
+        self.A        = None                        # Matriz A generada
+        self.A3       = None                        # Matriz A3 calculada
+        self.arbol_A  = None                        # Raiz del BST de A
+        self.arbol_A3 = None                        # Raiz del BST de A3
 
-        self._configurar_estilos()
-        self._build_ui()
+        # Objetos auxiliares (separacion de responsabilidades)
+        self.gestor      = GestorArchivos()         # Maneja archivos
+        self.constructor = ConstructorTexto()        # Construye el texto del resumen
 
-    def _configurar_estilos(self):
-        style = ttk.Style()
-        style.theme_use("clam")
+        self._estilos()
+        self._construir_ui()
 
-        style.configure("Main.TFrame", background="#f4f6f9")
-        style.configure("Header.TFrame", background="#1f4e79")
+    # ── Estilos visuales ────────────────────────────────────────
 
-        style.configure(
-            "Header.TLabel",
-            background="#1f4e79",
-            foreground="white",
-            font=("Segoe UI", 18, "bold"),
-        )
+    def _estilos(self):
+        """Configura el tema visual de todos los widgets ttk."""
+        s = ttk.Style()
+        s.theme_use("clam")
+        s.configure("Main.TFrame",   background="#f4f6f9")
+        s.configure("Header.TFrame", background="#1f4e79")
+        s.configure("Header.TLabel",    background="#1f4e79", foreground="white",   font=("Segoe UI", 18, "bold"))
+        s.configure("HeaderSub.TLabel", background="#1f4e79", foreground="#d9e8f5", font=("Segoe UI", 10))
+        s.configure("Card.TLabelframe",       background="#ffffff", borderwidth=1, relief="solid")
+        s.configure("Card.TLabelframe.Label", background="#f4f6f9", foreground="#1f4e79", font=("Segoe UI", 11, "bold"))
+        s.configure("TLabel", background="#f4f6f9", font=("Segoe UI", 10))
+        s.configure("TEntry", padding=6,             font=("Segoe UI", 10))
+        s.configure("Primary.TButton", font=("Segoe UI", 10, "bold"), padding=8, background="#1f4e79", foreground="white")
+        s.map("Primary.TButton", background=[("active", "#173a5c")], foreground=[("active", "white")])
+        s.configure("TNotebook.Tab", font=("Segoe UI", 10, "bold"), padding=(12, 6))
 
-        style.configure(
-            "HeaderSub.TLabel",
-            background="#1f4e79",
-            foreground="#d9e8f5",
-            font=("Segoe UI", 10),
-        )
+    # ── Construccion de la interfaz ──────────────────────────────
 
-        style.configure(
-            "Card.TLabelframe",
-            background="#ffffff",
-            borderwidth=1,
-            relief="solid",
-        )
+    def _construir_ui(self):
+        """Crea y posiciona todos los widgets de la ventana principal."""
 
-        style.configure(
-            "Card.TLabelframe.Label",
-            background="#f4f6f9",
-            foreground="#1f4e79",
-            font=("Segoe UI", 11, "bold"),
-        )
-
-        style.configure("TLabel", background="#f4f6f9", font=("Segoe UI", 10))
-        style.configure("TEntry", padding=6, font=("Segoe UI", 10))
-
-        style.configure(
-            "Primary.TButton",
-            font=("Segoe UI", 10, "bold"),
-            padding=8,
-            background="#1f4e79",
-            foreground="white",
-        )
-
-        style.map(
-            "Primary.TButton",
-            background=[("active", "#173a5c")],
-            foreground=[("active", "white")],
-        )
-
-        style.configure(
-            "TNotebook.Tab",
-            font=("Segoe UI", 10, "bold"),
-            padding=(12, 6),
-        )
-
-    def _build_ui(self):
         principal = ttk.Frame(self, style="Main.TFrame")
         principal.pack(fill="both", expand=True)
 
+        # Header azul oscuro
         header = ttk.Frame(principal, style="Header.TFrame")
         header.pack(fill="x")
+        ttk.Label(header, text="Matriz A, A3 y Arbol Binario",
+                  style="Header.TLabel").pack(anchor="w", padx=20, pady=(14, 2))
+        ttk.Label(header, text="Generacion, analisis, ordenamiento y busqueda comparativa",
+                  style="HeaderSub.TLabel").pack(anchor="w", padx=20, pady=(0, 14))
 
-        ttk.Label(
-            header,
-            text="Matriz A, A³ y Árbol Binario",
-            style="Header.TLabel",
-        ).pack(anchor="w", padx=20, pady=(14, 2))
-
-        ttk.Label(
-            header,
-            text="Generación, análisis, ordenamiento y búsqueda comparativa",
-            style="HeaderSub.TLabel",
-        ).pack(anchor="w", padx=20, pady=(0, 14))
-
+        # Fila superior: campo n + boton Generar
         top = ttk.Frame(principal, style="Main.TFrame")
         top.pack(fill="x", padx=20, pady=(14, 6))
-
-        ttk.Label(top, text="Tamaño n (n ≥ 4):").pack(side="left")
-
+        ttk.Label(top, text="Tamano n (n >= 4):").pack(side="left")
         self.entry_n = ttk.Entry(top, width=10)
         self.entry_n.pack(side="left", padx=8)
         self.entry_n.insert(0, "4")
+        ttk.Button(top, text="Generar matriz A y A3",
+                   style="Primary.TButton",
+                   command=self.generar).pack(side="left", padx=10)
+        tk.Label(top, text="(Si n > 20 se muestra vista previa y se guarda en .txt)",
+                 bg="#f4f6f9", fg="#666666", font=("Segoe UI", 10)).pack(side="left", padx=10)
 
-        self.btn_generar = ttk.Button(
-            top,
-            text="Generar matriz A y A³",
-            style="Primary.TButton",
-            command=self.generar,
-        )
-        self.btn_generar.pack(side="left", padx=10)
+        # Botones secundarios
+        bf = ttk.Frame(principal, style="Main.TFrame")
+        bf.pack(fill="x", padx=20, pady=(0, 10))
+        ttk.Button(bf, text="Abrir TXT A",       command=lambda: self._abrir("matriz_A.txt")).pack(side="left",  padx=5)
+        ttk.Button(bf, text="Abrir TXT A3",      command=lambda: self._abrir("matriz_A3.txt")).pack(side="left", padx=5)
+        ttk.Button(bf, text="Ver JSON Arbol A",  command=lambda: self._abrir("arbol_A.json")).pack(side="left",  padx=5)
+        ttk.Button(bf, text="Ver JSON Arbol A3", command=lambda: self._abrir("arbol_A3.json")).pack(side="left", padx=5)
+        ttk.Button(bf, text="Ver tabla A",       command=lambda: self._mostrar_tabla("Matriz A",  self.A)).pack(side="left",  padx=5)
+        ttk.Button(bf, text="Ver tabla A3",      command=lambda: self._mostrar_tabla("Matriz A3", self.A3)).pack(side="left", padx=5)
 
-        tk.Label(
-            top,
-            text="(Si n > 20 se mostrará vista previa. Se guarda en .txt.)",
-            bg="#f4f6f9",
-            fg="#666666",
-            font=("Segoe UI", 10),
-        ).pack(side="left", padx=10)
-
-        # Segunda fila de botones secundarios
-        botones_frame = ttk.Frame(principal, style="Main.TFrame")
-        botones_frame.pack(fill="x", padx=20, pady=(0, 10))
-
-        self.btn_abrir_A = ttk.Button(
-            botones_frame,
-            text="Abrir TXT Matriz A",
-            command=lambda: self.abrir_archivo_resultado("matriz_A.txt"),
-        )
-        self.btn_abrir_A.pack(side="left", padx=5)
-
-        self.btn_abrir_A3 = ttk.Button(
-            botones_frame,
-            text="Abrir TXT Matriz A³",
-            command=lambda: self.abrir_archivo_resultado("matriz_A3.txt"),
-        )
-        self.btn_abrir_A3.pack(side="left", padx=5)
-
-        self.btn_ver_grafico_A = ttk.Button(
-            botones_frame,
-            text="Ver gráfico Árbol A",
-            command=lambda: self.generar_imagen_graphviz("arbol_A.dot", "arbol_A.png"),
-        )
-        self.btn_ver_grafico_A.pack(side="left", padx=5)
-
-        self.btn_ver_grafico_A3 = ttk.Button(
-            botones_frame,
-            text="Ver gráfico Árbol A³",
-            command=lambda: self.generar_imagen_graphviz("arbol_A3.dot", "arbol_A3.png"),
-        )
-        self.btn_ver_grafico_A3.pack(side="left", padx=5)
-
-        self.btn_ver_tabla_A = ttk.Button(
-            botones_frame,
-            text="Ver tabla Matriz A",
-            command=lambda: self.mostrar_matriz_en_tabla("Matriz A", self.A),
-        )
-        self.btn_ver_tabla_A.pack(side="left", padx=5)
-
-        self.btn_ver_tabla_A3 = ttk.Button(
-            botones_frame,
-            text="Ver tabla Matriz A³",
-            command=lambda: self.mostrar_matriz_en_tabla("Matriz A³", self.A3),
-        )
-        self.btn_ver_tabla_A3.pack(side="left", padx=5)
-
-        buscar_frame = tk.LabelFrame(
-            principal,
-            text="Búsqueda",
-            bg="#f4f6f9",
-            fg="#333333",
-            font=("Segoe UI", 9),
-        )
-        buscar_frame.pack(fill="x", padx=20, pady=(0, 10))
-
-        tk.Label(
-            buscar_frame,
-            text="Número a buscar:",
-            bg="#f4f6f9",
-            fg="#222222",
-            font=("Segoe UI", 9),
-        ).pack(side="left", padx=(12, 5), pady=8)
-
-        self.entry_buscado = tk.Entry(
-            buscar_frame,
-            width=10,
-            font=("Segoe UI", 9),
-            bg="white",
-            fg="black",
-            relief="solid",
-            bd=1,
-        )
+        # Panel de busqueda
+        pf = tk.LabelFrame(principal, text="Busqueda",
+                            bg="#f4f6f9", fg="#333333", font=("Segoe UI", 9))
+        pf.pack(fill="x", padx=20, pady=(0, 10))
+        tk.Label(pf, text="Numero a buscar:", bg="#f4f6f9", fg="#222222",
+                 font=("Segoe UI", 9)).pack(side="left", padx=(12, 5), pady=8)
+        self.entry_buscado = tk.Entry(pf, width=10, font=("Segoe UI", 9),
+                                       bg="white", fg="black", relief="solid", bd=1)
         self.entry_buscado.pack(side="left", padx=5)
+        tk.Button(pf, text="Buscar en matriz y arbol",
+                  command=self.buscar,
+                  font=("Segoe UI", 9), bg="#f5f5f5", fg="#111111",
+                  activebackground="#e6e6e6", relief="raised",
+                  bd=1, padx=8, pady=2, cursor="hand2").pack(side="left", padx=10)
 
-        self.btn_buscar = tk.Button(
-            buscar_frame,
-            text="Buscar en matriz y árbol",
-            command=self.buscar,
-            font=("Segoe UI", 9),
-            bg="#f5f5f5",
-            fg="#111111",
-            activebackground="#e6e6e6",
-            activeforeground="#000000",
-            relief="raised",
-            bd=1,
-            padx=8,
-            pady=2,
-            cursor="hand2",
-        )
-        self.btn_buscar.pack(side="left", padx=10)
-
+        # Area central: matrices (izq) + resumen (der)
         centro = ttk.Frame(principal, style="Main.TFrame")
         centro.pack(fill="both", expand=True, padx=20, pady=(0, 10))
 
-        left = ttk.LabelFrame(centro, text="Matrices generadas", style="Card.TLabelframe")
-        left.pack(side="left", fill="both", expand=True, padx=(0, 12))
-
-        self.notebook = ttk.Notebook(left)
-        self.tab_A = ttk.Frame(self.notebook)
-        self.tab_A3 = ttk.Frame(self.notebook)
-        self.notebook.add(self.tab_A, text="Matriz A")
-        self.notebook.add(self.tab_A3, text="Matriz A³")
+        izq = ttk.LabelFrame(centro, text="Matrices generadas", style="Card.TLabelframe")
+        izq.pack(side="left", fill="both", expand=True, padx=(0, 12))
+        self.notebook = ttk.Notebook(izq)
+        self.tab_A    = ttk.Frame(self.notebook)
+        self.tab_A3   = ttk.Frame(self.notebook)
+        self.notebook.add(self.tab_A,  text="Matriz A")
+        self.notebook.add(self.tab_A3, text="Matriz A3")
         self.notebook.pack(fill="both", expand=True, padx=8, pady=8)
+        self.text_A  = self._text_scroll(self.tab_A)
+        self.text_A3 = self._text_scroll(self.tab_A3)
 
-        self.text_A = self._crear_texto_scroll(self.tab_A)
-        self.text_A3 = self._crear_texto_scroll(self.tab_A3)
-
-        right = ttk.LabelFrame(centro, text="Resumen y análisis", style="Card.TLabelframe")
-        right.pack(side="left", fill="both", expand=False)
-
-        self.txt_result = tk.Text(
-            right,
-            width=48,
-            height=24,
-            wrap="word",
-            font=("Consolas", 10),
-            bg="#ffffff",
-            fg="#222222",
-            relief="flat",
-            padx=10,
-            pady=10,
-        )
-        scroll_result = ttk.Scrollbar(right, orient="vertical", command=self.txt_result.yview)
-        self.txt_result.configure(yscrollcommand=scroll_result.set)
+        der = ttk.LabelFrame(centro, text="Resumen y analisis", style="Card.TLabelframe")
+        der.pack(side="left", fill="both", expand=False)
+        self.txt_result = tk.Text(der, width=50, height=24, wrap="word",
+                                   font=("Consolas", 10), bg="#ffffff", fg="#222222",
+                                   relief="flat", padx=10, pady=10)
+        sb_r = ttk.Scrollbar(der, orient="vertical", command=self.txt_result.yview)
+        self.txt_result.configure(yscrollcommand=sb_r.set)
         self.txt_result.pack(side="left", fill="both", expand=True, padx=(8, 0), pady=8)
-        scroll_result.pack(side="right", fill="y", padx=(0, 8), pady=8)
-
-        self.txt_result.insert("1.0", "Aquí aparecerá el resumen del análisis.\n\nPrimero genera la matriz.")
+        sb_r.pack(side="right", fill="y", padx=(0, 8), pady=8)
+        self.txt_result.insert("1.0", "Aqui aparecera el resumen.\n\nPrimero genera la matriz.")
         self.txt_result.config(state="disabled")
 
-        arbol_frame = ttk.LabelFrame(
-            principal,
-            text="Árbol binario de búsqueda (matriz A y A³)",
-            style="Card.TLabelframe",
-        )
-        arbol_frame.pack(fill="both", expand=False, padx=20, pady=(0, 10))
-
-        self.txt_arbol = tk.Text(
-            arbol_frame,
-            height=10,
-            wrap="none",
-            font=("Consolas", 12),
-            bg="#fbfbfb",
-            fg="#1e1e1e",
-            relief="flat",
-            padx=10,
-            pady=10,
-        )
-        scroll_arbol_y = ttk.Scrollbar(arbol_frame, orient="vertical", command=self.txt_arbol.yview)
-        scroll_arbol_x = ttk.Scrollbar(arbol_frame, orient="horizontal", command=self.txt_arbol.xview)
-        self.txt_arbol.configure(yscrollcommand=scroll_arbol_y.set, xscrollcommand=scroll_arbol_x.set)
-
+        # Panel del arbol ASCII
+        af = ttk.LabelFrame(principal, text="Arbol binario de busqueda (A y A3)",
+                             style="Card.TLabelframe")
+        af.pack(fill="both", expand=False, padx=20, pady=(0, 10))
+        self.txt_arbol = tk.Text(af, height=10, wrap="none",
+                                  font=("Consolas", 12), bg="#fbfbfb", fg="#1e1e1e",
+                                  relief="flat", padx=10, pady=10)
+        sb_ay = ttk.Scrollbar(af, orient="vertical",   command=self.txt_arbol.yview)
+        sb_ax = ttk.Scrollbar(af, orient="horizontal", command=self.txt_arbol.xview)
+        self.txt_arbol.configure(yscrollcommand=sb_ay.set, xscrollcommand=sb_ax.set)
         self.txt_arbol.grid(row=0, column=0, sticky="nsew", padx=(8, 0), pady=(8, 0))
-        scroll_arbol_y.grid(row=0, column=1, sticky="ns", padx=(0, 8), pady=(8, 0))
-        scroll_arbol_x.grid(row=1, column=0, sticky="ew", padx=(8, 0), pady=(0, 8))
-
-        arbol_frame.rowconfigure(0, weight=1)
-        arbol_frame.columnconfigure(0, weight=1)
-
-        self.txt_arbol.insert(
-            "1.0",
-            "Aquí se mostrará el árbol binario.\n\n(primero se muestra el árbol de A, luego el árbol de A³).",
-        )
+        sb_ay.grid(row=0, column=1, sticky="ns",  padx=(0, 8), pady=(8, 0))
+        sb_ax.grid(row=1, column=0, sticky="ew",  padx=(8, 0), pady=(0, 8))
+        af.rowconfigure(0, weight=1)
+        af.columnconfigure(0, weight=1)
+        self.txt_arbol.insert("1.0", "Aqui se mostrara el arbol binario.\n(primero A, luego A3).")
         self.txt_arbol.config(state="disabled")
 
-        self.status = tk.Label(
-            principal,
-            text="Estado: esperando datos...",
-            anchor="w",
-            bg="#e8eef3",
-            fg="#333333",
-            font=("Segoe UI", 10, "bold"),
-        )
+        # Barra de estado
+        self.status = tk.Label(principal, text="Estado: esperando datos...",
+                               anchor="w", bg="#e8eef3", fg="#333333",
+                               font=("Segoe UI", 10, "bold"))
         self.status.pack(fill="x", padx=20, pady=(0, 12), ipady=6)
 
-    def _crear_texto_scroll(self, parent):
+    # ── Metodos auxiliares de widgets ────────────────────────────
+
+    def _text_scroll(self, parent):
+        """Crea un widget Text con barras de scroll horizontal y vertical."""
         frame = ttk.Frame(parent)
         frame.pack(fill="both", expand=True)
-
-        text = tk.Text(
-            frame,
-            wrap="none",
-            font=("Consolas", 11),
-            bg="#fbfbfb",
-            fg="#1f1f1f",
-            relief="flat",
-            padx=10,
-            pady=10,
-        )
-
-        scroll_y = ttk.Scrollbar(frame, orient="vertical", command=text.yview)
-        scroll_x = ttk.Scrollbar(frame, orient="horizontal", command=text.xview)
-        text.configure(yscrollcommand=scroll_y.set, xscrollcommand=scroll_x.set)
-
+        text = tk.Text(frame, wrap="none", font=("Consolas", 11),
+                       bg="#fbfbfb", fg="#1f1f1f", relief="flat", padx=10, pady=10)
+        sby = ttk.Scrollbar(frame, orient="vertical",   command=text.yview)
+        sbx = ttk.Scrollbar(frame, orient="horizontal", command=text.xview)
+        text.configure(yscrollcommand=sby.set, xscrollcommand=sbx.set)
         text.grid(row=0, column=0, sticky="nsew")
-        scroll_y.grid(row=0, column=1, sticky="ns")
-        scroll_x.grid(row=1, column=0, sticky="ew")
-
+        sby.grid(row=0, column=1, sticky="ns")
+        sbx.grid(row=1, column=0, sticky="ew")
         frame.rowconfigure(0, weight=1)
         frame.columnconfigure(0, weight=1)
-
         text.config(state="disabled")
         return text
 
-    def _set_text(self, widget, content):
+    def _set_text(self, widget, contenido):
+        """Reemplaza todo el contenido de un widget Text."""
         widget.config(state="normal")
         widget.delete("1.0", "end")
-        widget.insert("1.0", content)
+        widget.insert("1.0", contenido)
         widget.config(state="disabled")
 
-    def _append_text(self, widget, content):
+    def _add_text(self, widget, contenido):
+        """Agrega texto al final de un widget Text sin borrar el existente."""
         widget.config(state="normal")
-        widget.insert("end", content)
+        widget.insert("end", contenido)
         widget.see("end")
         widget.config(state="disabled")
 
-    def guardar_matriz_en_txt(self, nombre_archivo, matriz, titulo):
-        # Guarda en la carpeta resultados para mantener los archivos organizados.
-        carpeta_resultados = "resultados"
-        os.makedirs(carpeta_resultados, exist_ok=True)
-        ruta_completa = os.path.join(carpeta_resultados, nombre_archivo)
-        n = len(matriz)
-        with open(ruta_completa, "w", encoding="utf-8") as f:
-            f.write(f"{titulo}\n")
-            f.write(f"Tamaño: {n}x{n}\n")
-            f.write("=" * 60 + "\n\n")
-            for fila in matriz:
-                f.write("   ".join(f"{v:10}" for v in fila) + "\n")
+    def _abrir(self, nombre_archivo):
+        """Abre un archivo de resultados con el programa predeterminado del SO."""
+        ok = self.gestor.abrir_archivo(nombre_archivo)
+        if not ok:
+            messagebox.showwarning("Archivo no encontrado",
+                                   "Primero genera la matriz para crear el archivo.")
 
-    def _mat_to_str(self, M, vista_previa_dim=10):
+    def _mostrar_tabla(self, titulo, matriz):
+        """Abre la matriz en una ventana emergente como tabla interactiva."""
+        if matriz is None:
+            messagebox.showwarning("Sin datos", "Primero genera la matriz.")
+            return
+        if not TKSHEET_DISPONIBLE:
+            messagebox.showinfo("tksheet no disponible",
+                                "Instala tksheet o abre el archivo .txt.")
+            return
+        ventana = tk.Toplevel(self)
+        ventana.title(titulo)
+        ventana.geometry("900x600")
+        hoja = tksheet.Sheet(ventana, data=matriz)
+        hoja.pack(fill="both", expand=True)
+        hoja.enable_bindings(("single_select", "row_select",
+                               "column_width_resize", "arrowkeys",
+                               "right_click_popup_menu"))
+
+    def _mat_to_str(self, M, lim=10):
+        """Convierte la matriz M a texto para mostrar en pantalla.
+        n > 20: vista previa lim x lim.
+        n <= 20: muestra la matriz completa.
+        Usa for, if y +=. Sin .join() ni str(lista).
+        """
         n = len(M)
+        resultado = ""
 
-        # Vista previa si es grande
         if n > 20:
-            limite = min(vista_previa_dim, n)
-            lineas = []
-            for i in range(limite):
-                lineas.append("   ".join(f"{v:6}" for v in M[i][:limite]))
-            return (
-                "\n".join(lineas)
-                + f"\n\n( Vista previa: {limite}x{limite} de la matriz {n}x{n} )"
-            )
+            l = lim if lim < n else n
+            for i in range(l):
+                for j in range(l):
+                    resultado += f"{M[i][j]:6}"
+                    if j < l - 1:
+                        resultado += "   "
+                if i < l - 1:
+                    resultado += "\n"
+            resultado += "\n\n( Vista previa: " + str(l) + "x" + str(l)
+            resultado += " de " + str(n) + "x" + str(n) + " )"
+            return resultado
 
-        # Pequeña: toda
-        lineas = []
-        for fila in M:
-            lineas.append("   ".join(f"{v:6}" for v in fila))
-        return "\n".join(lineas)
+        for i in range(n):
+            for j in range(n):
+                resultado += f"{M[i][j]:6}"
+                if j < n - 1:
+                    resultado += "   "
+            if i < n - 1:
+                resultado += "\n"
+        return resultado
+
+    def _arbol_a_dict(self, nodo):
+        """Convierte el arbol BST (NodoJSON) a diccionario Python de forma recursiva.
+        NodoJSON tiene: nodo.dato = {"valor": num, "cantidad": freq}.
+        """
+        if nodo is None:
+            return None
+        return {
+            "valor":     nodo.dato["valor"],
+            "cantidad":  nodo.dato["cantidad"],
+            "izquierda": self._arbol_a_dict(nodo.izquierda),
+            "derecha":   self._arbol_a_dict(nodo.derecha),
+        }
+
+    def _limpiar_texto(self, texto):
+        """Quita espacios al inicio y al final del string sin usar .strip().
+        Avanza con while desde los dos extremos.
+        """
+        i = 0
+        while i < len(texto) and texto[i] == " ":
+            i += 1
+        j = len(texto) - 1
+        while j >= 0 and texto[j] == " ":
+            j -= 1
+        if i > j:
+            return ""
+        return texto[i:j + 1]
+
+    def _es_entero(self, texto):
+        """Verifica si un string es un numero entero valido sin int() previo.
+        Recorre caracter a caracter comparando con '0' y '9'.
+        """
+        if len(texto) == 0:
+            return False
+        inicio = 0
+        if texto[0] == "-":
+            inicio = 1
+        if inicio == len(texto):
+            return False
+        i = inicio
+        while i < len(texto):
+            if texto[i] < "0" or texto[i] > "9":
+                return False
+            i += 1
+        return True
+
+    # ── Accion: GENERAR ─────────────────────────────────────────
 
     def generar(self):
-        try:
-            n = int(self.entry_n.get().strip())
-        except Exception:
+        """Genera A, calcula A3, analiza, construye arboles BST y muestra todo."""
+
+        # Validar n
+        texto_n = self._limpiar_texto(self.entry_n.get())
+        if not self._es_entero(texto_n):
             messagebox.showerror("Error", "Ingrese un valor entero para n.")
             return
+        n = int(texto_n)
 
         if n < 4:
             messagebox.showerror("Error", "n debe ser mayor o igual a 4.")
             return
-
         if n > MAX_N:
-            messagebox.showerror(
-                "Error",
-                "El valor de n supera el límite permitido. Este límite existe porque el cálculo de A³ requiere multiplicación de matrices con costo O(n³) y puede consumir demasiada memoria RAM.",
-            )
+            messagebox.showerror("Error",
+                "n supera el limite de " + str(MAX_N) +
+                ". El calculo de A3 (O(n3)) consumiria demasiada RAM.")
             return
-
         if n > 20:
-            continuar = messagebox.askyesno(
-                "Advertencia",
-                "El valor de n es grande. Se mostrará una vista previa en la interfaz, y se guardarán matrices completas en .txt. ¿Deseas continuar?",
-            )
-            if not continuar:
+            ok = messagebox.askyesno("Advertencia",
+                "n es grande. Se mostrara vista previa y se guardaran archivos .txt. Continuar?")
+            if not ok:
                 return
 
-        self.status.config(text="Estado: generando matriz y calculando A³...")
+        self.status.config(text="Estado: generando matriz y calculando A3...")
         self.update_idletasks()
 
         try:
+            # Paso 1: crear A y calcular A3
             iniciar_medicion_memoria()
             self.A = crear_matriz(n)
-            
-            # Para n > 100, usar función optimizada para guardar A³ (fila por fila)
-            if n > 100:
-                self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
-                self.status.config(text="Estado: guardando A³ y calculando análisis...")
-                self.update_idletasks()
-                
-                # Calcula y guarda A³ de forma optimizada (fila por fila, sin guardar todo en memoria antes)
-                self.A3 = guardar_A3_directo_txt(self.A, os.path.join("resultados", "matriz_A3.txt"))
-            else:
-                # Para n pequeño, comportamiento normal
-                self.A3 = calcular_A3(self.A)
-                self.guardar_matriz_en_txt("matriz_A.txt", self.A, "Matriz A")
-                self.guardar_matriz_en_txt("matriz_A3.txt", self.A3, "Matriz A³")
 
-            analisis_A = analizar_matriz(self.A)
+            if n > 100:
+                self.gestor.guardar_matriz("matriz_A.txt", self.A, "Matriz A")
+                self.status.config(text="Estado: guardando A3 fila por fila...")
+                self.update_idletasks()
+                ruta_a3 = self.gestor.CARPETA + "\\" + "matriz_A3.txt"
+                self.A3 = guardar_A3_directo_txt(self.A, ruta_a3)
+            else:
+                self.A3 = calcular_A3(self.A)
+                self.gestor.guardar_matriz("matriz_A.txt",  self.A,  "Matriz A")
+                self.gestor.guardar_matriz("matriz_A3.txt", self.A3, "Matriz A3")
+
+            # Paso 2: analizar
+            analisis_A  = analizar_matriz(self.A)
             analisis_A3 = analizar_matriz(self.A3)
 
-            rep_A = contar_repeticiones(self.A)
+            # Paso 3: repeticiones
+            rep_A  = contar_repeticiones(self.A)
             rep_A3 = contar_repeticiones(self.A3)
 
-            rep_A = contar_repeticiones(self.A)
-            lista_json_A = frecuencias_a_json_ordenado(rep_A)
-            self.arbol_A = construir_arbol_json_equilibrado(lista_json_A, 0, len(lista_json_A) - 1)
+            # Paso 4: construir BST
+            lista_A  = frecuencias_a_json_ordenado(rep_A)
+            self.arbol_A  = construir_arbol_json_equilibrado(lista_A,  0, len(lista_A)  - 1)
+            lista_A3 = frecuencias_a_json_ordenado(rep_A3)
+            self.arbol_A3 = construir_arbol_json_equilibrado(lista_A3, 0, len(lista_A3) - 1)
 
-            rep_A3 = contar_repeticiones(self.A3)
-            lista_json_A3 = frecuencias_a_json_ordenado(rep_A3)
-            self.arbol_A3 = construir_arbol_json_equilibrado(lista_json_A3, 0, len(lista_json_A3) - 1)
+            # Paso 5: vectores ordenados
+            vec_A   = matriz_a_vector(self.A)
+            vec_A3  = matriz_a_vector(self.A3)
+            va_asc  = ordenar_ascendente(vec_A)
+            va3_asc = ordenar_ascendente(vec_A3)
+            va_desc = invertir_vector(va_asc)
+            va3_desc= invertir_vector(va3_asc)
 
-            vector_A = matriz_a_vector(self.A)
-            vector_A3 = matriz_a_vector(self.A3)
-
-            vector_A_asc = ordenar_ascendente(list(vector_A))
-            vector_A3_asc = ordenar_ascendente(list(vector_A3))
-            vector_A_desc = invertir_vector(vector_A_asc)
-            vector_A3_desc = invertir_vector(vector_A3_asc)
-
-            # UI: vista previa o matriz completa
-            self._set_text(self.text_A, self._mat_to_str(self.A))
+            # Paso 6: mostrar matrices
+            self._set_text(self.text_A,  self._mat_to_str(self.A))
             self._set_text(self.text_A3, self._mat_to_str(self.A3))
 
-            # Mostrar ASCII del árbol solo si el árbol JSON no es demasiado grande
-            if len(lista_json_A) <= 63:
-                ascii_arbol_A = arbol_a_ascii(self.arbol_A)
+            # Paso 7: arbol ASCII
+            if len(lista_A) <= 63:
+                ascii_A = arbol_a_ascii(self.arbol_A)
             else:
-                ascii_arbol_A = (
-                    "Árbol A generado correctamente.\n"
-                    f"No se muestra porque tiene {len(lista_json_A)} nodos.\n"
-                    "La búsqueda en árbol sigue funcionando normalmente."
-                )
-
-            if len(lista_json_A3) <= 63:
-                ascii_arbol_A3 = arbol_a_ascii(self.arbol_A3)
+                ascii_A = "Arbol A generado (" + str(len(lista_A)) + " nodos). Busqueda disponible."
+            if len(lista_A3) <= 63:
+                ascii_A3 = arbol_a_ascii(self.arbol_A3)
             else:
-                ascii_arbol_A3 = (
-                    "Árbol A³ generado correctamente.\n"
-                    f"No se muestra porque tiene {len(lista_json_A3)} nodos.\n"
-                    "La búsqueda en árbol sigue funcionando normalmente."
-                )
+                ascii_A3 = "Arbol A3 generado (" + str(len(lista_A3)) + " nodos). Busqueda disponible."
+            self._set_text(self.txt_arbol,
+                           "ARBOL A:\n" + ascii_A + "\n\nARBOL A3:\n" + ascii_A3)
 
-            self._set_text(
-                self.txt_arbol,
-                "ARBOL A:\n" + ascii_arbol_A + "\n\nARBOL A³:\n" + ascii_arbol_A3,
-            )
-
+            # Paso 8: memoria
             mem_actual, mem_pico = obtener_memoria_actual_y_pico()
             detener_medicion_memoria()
-            estimacion_A = estimar_memoria_matriz(n)
+            estimacion = estimar_memoria_matriz(n)
 
-            def resumen_analisis(nombre, analisis):
-                return (
-                    f"{nombre}\n"
-                    f"{'-' * len(nombre)}\n"
-                    f"Pares: {analisis['pares']['cantidad']}\n"
-                    f"Impares: {analisis['impares']['cantidad']}\n"
-                    f"Primos: {analisis['primos']['cantidad']}\n"
-                    f"Perfectos: {analisis['perfectos']['cantidad']}\n"
-                    f"Cuadrados perfectos: {analisis['cuadrados']['cantidad']}\n"
-                )
+            # Paso 9: resumen en el panel
+            salida = self.constructor.construir_salida(
+                analisis_A, analisis_A3, rep_A, rep_A3,
+                va_asc, va_desc, va3_asc, va3_desc,
+                mem_actual, mem_pico, estimacion
+            )
+            self._set_text(self.txt_result, salida)
 
-            salida = []
-            salida.append(resumen_analisis("RESUMEN MATRIZ A", analisis_A))
-            salida.append("\nRepeticiones A:\n")
-            # Usar nuestro propio ordenamiento para las claves (evitar sorted())
-            if rep_A:
-                claves_A = ordenar_ascendente(list(rep_A.keys()))
-                salida.append(
-                    ", ".join(f"{k}: {rep_A[k]}" for k in claves_A)
-                )
-            else:
-                salida.append("Sin datos")
-
-            salida.append("\n\n")
-            salida.append(resumen_analisis("RESUMEN MATRIZ A³", analisis_A3))
-            salida.append("\nRepeticiones A³:\n")
-            if rep_A3:
-                claves_A3 = ordenar_ascendente(list(rep_A3.keys()))
-                salida.append(
-                    ", ".join(f"{k}: {rep_A3[k]}" for k in claves_A3)
-                )
-            else:
-                salida.append("Sin datos")
-
-            salida.append("\n\nVECTORES ORDENADOS\n")
-            salida.append("------------------\n")
-
-            salida.append("A ascendente:\n")
-            texto_A = str(vector_A_asc)
-            salida.append(texto_A[:1200] + ("..." if len(texto_A) > 1200 else ""))
-
-            salida.append("\n\nA descendente:\n")
-            texto_A_desc = str(vector_A_desc)
-            salida.append(texto_A_desc[:1200] + ("..." if len(texto_A_desc) > 1200 else ""))
-
-            salida.append("\n\nA³ ascendente:\n")
-            texto_A3 = str(vector_A3_asc)
-            salida.append(texto_A3[:1200] + ("..." if len(texto_A3) > 1200 else ""))
-
-            salida.append("\n\nA³ descendente:\n")
-            texto_A3_desc = str(vector_A3_desc)
-            salida.append(texto_A3_desc[:1200] + ("..." if len(texto_A3_desc) > 1200 else ""))
-            salida.append("\n\nMEMORIA\n")
-            salida.append("------\n")
-            salida.append(f"Estimación A: {estimacion_A} bytes\n")
-            salida.append(f"Memoria actual: {mem_actual // 1024} KB\n")
-            salida.append(f"Memoria pico: {mem_pico // 1024} KB\n")
-            self._set_text(self.txt_result, "".join(salida))
+            # Paso 10: guardar JSON del arbol manualmente
+            self.gestor.guardar_arbol_json("arbol_A.json",  self._arbol_a_dict(self.arbol_A),  "ArbolA")
+            self.gestor.guardar_arbol_json("arbol_A3.json", self._arbol_a_dict(self.arbol_A3), "ArbolA3")
 
             if n > 20:
-                self.status.config(
-                    text="Estado: matriz generada. Vista previa en interfaz y .txt guardados (matriz_A.txt, matriz_A3.txt)."
-                )
+                self.status.config(text="Estado: generado. Vista previa en pantalla. Archivos en /resultados.")
             else:
-                self.status.config(text="Estado: matriz generada correctamente. Ya puedes buscar un número.")
+                self.status.config(text="Estado: generado correctamente. Ya puedes buscar un numero.")
 
-            # Exportar DOT para árboles pequeños y generar un mensaje para los grandes.
-            nodos_A = self.contar_nodos_arbol(self.arbol_A)
-            nodos_A3 = self.contar_nodos_arbol(self.arbol_A3)
+        except Exception as e:
+            messagebox.showerror("Error", "Ocurrio un problema al generar:\n" + str(e))
+            self.status.config(text="Estado: error al generar.")
 
-            if nodos_A <= 100:
-                contenido_A = exportar_arbol_dot(self.arbol_A, "ArbolA")
-            else:
-                contenido_A = (
-                    "// El árbol fue generado correctamente, pero no se exporta completo "
-                    "porque tiene demasiados nodos.\n"
-                    f"Nodos: {nodos_A}\n"
-                )
-
-            if nodos_A3 <= 100:
-                contenido_A3 = exportar_arbol_dot(self.arbol_A3, "ArbolA3")
-            else:
-                contenido_A3 = (
-                    "// El árbol fue generado correctamente, pero no se exporta completo "
-                    "porque tiene demasiados nodos.\n"
-                    f"Nodos: {nodos_A3}\n"
-                )
-
-            self.guardar_texto_en_archivo("arbol_A.dot", contenido_A)
-            self.guardar_texto_en_archivo("arbol_A3.dot", contenido_A3)
-
-        except Exception as error:
-            messagebox.showerror("Error", f"Ocurrió un problema al generar la matriz:\n{error}")
-            self.status.config(text="Estado: ocurrió un error al generar la matriz.")
+    # ── Accion: BUSCAR ──────────────────────────────────────────
 
     def buscar(self):
-        if (
-            self.A is None
-            or self.A3 is None
-            or self.arbol_A is None
-            or self.arbol_A3 is None
-        ):
-            messagebox.showwarning("Aviso", "Primero genera la matriz A y A³.")
+        """Busca un numero en la matriz y en el arbol BST, mide tiempos y compara."""
+        if self.A is None or self.A3 is None or self.arbol_A is None or self.arbol_A3 is None:
+            messagebox.showwarning("Aviso", "Primero genera la matriz A y A3.")
             return
 
-        try:
-            buscado = int(self.entry_buscado.get().strip())
-        except Exception:
-            messagebox.showerror("Error", "Ingrese un número entero para buscar.")
+        texto_b = self._limpiar_texto(self.entry_buscado.get())
+        if not self._es_entero(texto_b):
+            messagebox.showerror("Error", "Ingrese un numero entero para buscar.")
             return
+        buscado = int(texto_b)
 
-        self.status.config(text="Estado: buscando número...")
+        self.status.config(text="Estado: buscando...")
         self.update_idletasks()
 
-        resultado_matriz_A, tiempo_matriz_A = medir_tiempo(buscar_y_contar_en_matriz, self.A, buscado)
-        encontrado_matriz_A, cantidad_matriz_A = resultado_matriz_A
-        resultado_arbol_A, tiempo_arbol_A = medir_tiempo(buscar_en_arbol_json, self.arbol_A, buscado)
+        # Busquedas en A
+        res_mat_A,  t_mat_A  = medir_tiempo(buscar_y_contar_en_matriz, self.A,        buscado)
+        enc_mat_A, cant_mat_A = res_mat_A
+        res_arb_A,  t_arb_A  = medir_tiempo(buscar_en_arbol_json,      self.arbol_A,  buscado)
 
-        resultado_matriz_A3, tiempo_matriz_A3 = medir_tiempo(buscar_y_contar_en_matriz, self.A3, buscado)
-        encontrado_matriz_A3, cantidad_matriz_A3 = resultado_matriz_A3
-        resultado_arbol_A3, tiempo_arbol_A3 = medir_tiempo(buscar_en_arbol_json, self.arbol_A3, buscado)
+        # Busquedas en A3
+        res_mat_A3, t_mat_A3  = medir_tiempo(buscar_y_contar_en_matriz, self.A3,       buscado)
+        enc_mat_A3, cant_mat_A3 = res_mat_A3
+        res_arb_A3, t_arb_A3  = medir_tiempo(buscar_en_arbol_json,     self.arbol_A3,  buscado)
 
-        cantidad_arbol_A = resultado_arbol_A["cantidad"] if resultado_arbol_A is not None else 0
-        cantidad_arbol_A3 = resultado_arbol_A3["cantidad"] if resultado_arbol_A3 is not None else 0
+        if res_arb_A is not None:
+            cant_arb_A = res_arb_A["cantidad"]
+        else:
+            cant_arb_A = 0
 
-        mensaje = (
-            "\n\nBÚSQUEDA DEL VALOR " + str(buscado) + "\n"
-            "-------------------\n"
-            "Matriz A:\n"
-            f"En matriz: {'encontrado' if encontrado_matriz_A else 'no encontrado'}, cantidad: {cantidad_matriz_A}, tiempo: {tiempo_matriz_A} ns\n"
-            f"En árbol JSON: {'encontrado' if resultado_arbol_A is not None else 'no encontrado'}, cantidad: {cantidad_arbol_A}, tiempo: {tiempo_arbol_A} ns\n"
-            f"Más rápido: {'árbol JSON' if tiempo_arbol_A < tiempo_matriz_A else ('matriz' if tiempo_matriz_A < tiempo_arbol_A else 'empate')}\n\n"
-            "Matriz A³:\n"
-            f"En matriz: {'encontrado' if encontrado_matriz_A3 else 'no encontrado'}, cantidad: {cantidad_matriz_A3}, tiempo: {tiempo_matriz_A3} ns\n"
-            f"En árbol JSON: {'encontrado' if resultado_arbol_A3 is not None else 'no encontrado'}, cantidad: {cantidad_arbol_A3}, tiempo: {tiempo_arbol_A3} ns\n"
-            f"Más rápido: {'árbol JSON' if tiempo_arbol_A3 < tiempo_matriz_A3 else ('matriz' if tiempo_matriz_A3 < tiempo_arbol_A3 else 'empate')}\n"
-        )
+        if res_arb_A3 is not None:
+            cant_arb_A3 = res_arb_A3["cantidad"]
+        else:
+            cant_arb_A3 = 0
 
-        self._append_text(self.txt_result, mensaje)
-        self.status.config(text="Estado: búsqueda completada.")
+        # Estado de cada busqueda (sin operador ternario en una sola linea)
+        if enc_mat_A:
+            txt_mat_A = "encontrado"
+        else:
+            txt_mat_A = "no encontrado"
+        if res_arb_A is not None:
+            txt_arb_A = "encontrado"
+        else:
+            txt_arb_A = "no encontrado"
+        if t_arb_A < t_mat_A:
+            rapido_A = "arbol BST"
+        elif t_mat_A < t_arb_A:
+            rapido_A = "matriz"
+        else:
+            rapido_A = "empate"
 
-    def generar_imagen_graphviz(self, archivo_dot, archivo_salida):
-        # Reemplazado: ahora se busca el ejecutable 'dot' y se usa su ruta completa
-        ruta_dot = os.path.join("resultados", archivo_dot)
-        ruta_salida = os.path.join("resultados", archivo_salida)
+        if enc_mat_A3:
+            txt_mat_A3 = "encontrado"
+        else:
+            txt_mat_A3 = "no encontrado"
+        if res_arb_A3 is not None:
+            txt_arb_A3 = "encontrado"
+        else:
+            txt_arb_A3 = "no encontrado"
+        if t_arb_A3 < t_mat_A3:
+            rapido_A3 = "arbol BST"
+        elif t_mat_A3 < t_arb_A3:
+            rapido_A3 = "matriz"
+        else:
+            rapido_A3 = "empate"
 
-        # Verificar si el archivo DOT existe
-        if not os.path.exists(ruta_dot):
-            messagebox.showwarning(
-                "Archivo no encontrado",
-                "Primero genera la matriz para crear el árbol."
-            )
-            return
+        # Construye el mensaje de resultado con +=
+        msg = "\n\nBUSQUEDA: " + str(buscado) + "\n"
+        msg += "-------------------\n"
+        msg += "Matriz A:\n"
+        msg += "  En matriz   : " + txt_mat_A  + ", cantidad: " + str(cant_mat_A)  + ", tiempo: " + str(t_mat_A)  + " ns\n"
+        msg += "  En arbol BST: " + txt_arb_A  + ", cantidad: " + str(cant_arb_A)  + ", tiempo: " + str(t_arb_A)  + " ns\n"
+        msg += "  -> Mas rapido: " + rapido_A  + "\n\n"
+        msg += "Matriz A3:\n"
+        msg += "  En matriz   : " + txt_mat_A3 + ", cantidad: " + str(cant_mat_A3) + ", tiempo: " + str(t_mat_A3) + " ns\n"
+        msg += "  En arbol BST: " + txt_arb_A3 + ", cantidad: " + str(cant_arb_A3) + ", tiempo: " + str(t_arb_A3) + " ns\n"
+        msg += "  -> Mas rapido: " + rapido_A3 + "\n"
 
-        # Verificar contenido por indicación de árbol grande (si aplica)
-        try:
-            with open(ruta_dot, "r", encoding="utf-8") as f:
-                contenido = f.read()
-                if "demasiados nodos" in contenido:
-                    messagebox.showinfo(
-                        "Árbol muy grande",
-                        "El árbol fue generado, pero no se visualiza completo porque tiene demasiados nodos. "
-                        "Use n pequeño (por ejemplo 4 a 8) para ver el árbol visual."
-                    )
-                    return
-        except Exception:
-            pass
+        self._add_text(self.txt_result, msg)
+        self.status.config(text="Estado: busqueda completada.")
 
-        # Localizar ejecutable 'dot'
-        dot_exec = self.find_dot_executable()
-        if not dot_exec:
-            messagebox.showerror(
-                "Graphviz no encontrado",
-                "Graphviz no está instalado o no está agregado al PATH.\n\n"
-                "Instale Graphviz desde https://graphviz.org/download/ y verifique con:\n"
-                "  dot -V"
-            )
-            return
 
-        # Ejecutar Graphviz usando la ruta completa encontrada
-        try:
-            subprocess.run([dot_exec, "-Tpng", ruta_dot, "-o", ruta_salida], check=True, capture_output=True)
-            os.startfile(ruta_salida)
-        except subprocess.CalledProcessError as e:
-            messagebox.showerror("Error al generar imagen", f"No se pudo generar la imagen del árbol.\n{e}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Ocurrió un error inesperado:\n{e}")
-
-    def find_dot_executable(self):
-        """
-        Busca el ejecutable 'dot' de Graphviz únicamente en el PATH.
-
-        Graphviz se usa solo para visualizar el árbol en imagen.
-        No construye el árbol ni reemplaza ningún algoritmo del proyecto.
-        """
-        try:
-            return shutil.which("dot")
-        except Exception:
-            return None
-
-    def guardar_texto_en_archivo(self, nombre_archivo, contenido):
-        carpeta_resultados = "resultados"
-        os.makedirs(carpeta_resultados, exist_ok=True)
-        ruta_completa = os.path.join(carpeta_resultados, nombre_archivo)
-        with open(ruta_completa, "w", encoding="utf-8") as archivo:
-            archivo.write(contenido)
-
-    def abrir_archivo_resultado(self, nombre_archivo):
-        ruta_archivo = os.path.join("resultados", nombre_archivo)
-
-        if not os.path.exists(ruta_archivo):
-            messagebox.showwarning(
-                "Archivo no encontrado",
-                "Primero genera la matriz para crear el archivo."
-            )
-            return
-
-        try:
-            os.startfile(ruta_archivo)
-        except Exception as error:
-            messagebox.showerror(
-                "Error",
-                f"No se pudo abrir el archivo:\n{error}"
-            )
-
-    def abrir_archivo_txt(self, nombre_archivo):
-        self.abrir_archivo_resultado(nombre_archivo)
-
-    def contar_nodos_arbol(self, raiz):
-        if raiz is None:
-            return 0
-        return 1 + self.contar_nodos_arbol(raiz.izquierda) + self.contar_nodos_arbol(raiz.derecha)
-
-    def mostrar_matriz_en_tabla(self, titulo, matriz):
-        if matriz is None:
-            messagebox.showwarning(
-                "Matriz no generada",
-                "Primero genera la matriz para poder mostrarla."
-            )
-            return
-
-        if not TKSHEET_DISPONIBLE:
-            messagebox.showinfo(
-                "tksheet no disponible",
-                "Para ver la tabla instala tksheet o abre el archivo .txt."
-            )
-            return
-
-        ventana = tk.Toplevel(self)
-        ventana.title(titulo)
-        ventana.geometry("900x600")
-
-        hoja = tksheet.Sheet(ventana, data=matriz)
-        hoja.pack(fill="both", expand=True)
-
-        hoja.enable_bindings(
-            ("single_select", "row_select", "column_width_resize", "arrowkeys", "right_click_popup_menu")
-        )
-# MAIN
-# =========================================================
+# ================================================================
+# PUNTO DE ENTRADA
+# ================================================================
 
 if __name__ == "__main__":
-    app = App()
-    app.mainloop()
-
+    app = App()        # Crea la ventana principal
+    app.mainloop()     # Inicia el bucle de eventos de tkinter
