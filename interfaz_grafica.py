@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
-import subprocess
-import shutil
 
 MAX_N = 150
 
@@ -36,7 +34,7 @@ from Proyecto_final import (
     buscar_en_arbol_json,
     medir_tiempo,
     arbol_a_ascii,
-    exportar_arbol_dot,
+    arbol_a_json_texto,
     iniciar_medicion_memoria,
     obtener_memoria_actual_y_pico,
     detener_medicion_memoria,
@@ -169,20 +167,6 @@ class App(tk.Tk):
             command=lambda: self.abrir_archivo_resultado("matriz_A3.txt"),
         )
         self.btn_abrir_A3.pack(side="left", padx=5)
-
-        self.btn_ver_grafico_A = ttk.Button(
-            botones_frame,
-            text="Ver gráfico Árbol A",
-            command=lambda: self.generar_imagen_graphviz("arbol_A.dot", "arbol_A.png"),
-        )
-        self.btn_ver_grafico_A.pack(side="left", padx=5)
-
-        self.btn_ver_grafico_A3 = ttk.Button(
-            botones_frame,
-            text="Ver gráfico Árbol A³",
-            command=lambda: self.generar_imagen_graphviz("arbol_A3.dot", "arbol_A3.png"),
-        )
-        self.btn_ver_grafico_A3.pack(side="left", padx=5)
 
         self.btn_ver_tabla_A = ttk.Button(
             botones_frame,
@@ -493,30 +477,12 @@ class App(tk.Tk):
             else:
                 self.status.config(text="Estado: matriz generada correctamente. Ya puedes buscar un número.")
 
-            # Exportar DOT para árboles pequeños y generar un mensaje para los grandes.
-            nodos_A = self.contar_nodos_arbol(self.arbol_A)
-            nodos_A3 = self.contar_nodos_arbol(self.arbol_A3)
+            # Exportar a JSON
+            contenido_A = arbol_a_json_texto(self.arbol_A)
+            contenido_A3 = arbol_a_json_texto(self.arbol_A3)
 
-            if nodos_A <= 100:
-                contenido_A = exportar_arbol_dot(self.arbol_A, "ArbolA")
-            else:
-                contenido_A = (
-                    "// El árbol fue generado correctamente, pero no se exporta completo "
-                    "porque tiene demasiados nodos.\n"
-                    f"Nodos: {nodos_A}\n"
-                )
-
-            if nodos_A3 <= 100:
-                contenido_A3 = exportar_arbol_dot(self.arbol_A3, "ArbolA3")
-            else:
-                contenido_A3 = (
-                    "// El árbol fue generado correctamente, pero no se exporta completo "
-                    "porque tiene demasiados nodos.\n"
-                    f"Nodos: {nodos_A3}\n"
-                )
-
-            self.guardar_texto_en_archivo("arbol_A.dot", contenido_A)
-            self.guardar_texto_en_archivo("arbol_A3.dot", contenido_A3)
+            self.guardar_texto_en_archivo("arbol_A.json", contenido_A)
+            self.guardar_texto_en_archivo("arbol_A3.json", contenido_A3)
 
         except Exception as error:
             messagebox.showerror("Error", f"Ocurrió un problema al generar la matriz:\n{error}")
@@ -567,65 +533,6 @@ class App(tk.Tk):
 
         self._append_text(self.txt_result, mensaje)
         self.status.config(text="Estado: búsqueda completada.")
-
-    def generar_imagen_graphviz(self, archivo_dot, archivo_salida):
-        # Reemplazado: ahora se busca el ejecutable 'dot' y se usa su ruta completa
-        ruta_dot = os.path.join("resultados", archivo_dot)
-        ruta_salida = os.path.join("resultados", archivo_salida)
-
-        # Verificar si el archivo DOT existe
-        if not os.path.exists(ruta_dot):
-            messagebox.showwarning(
-                "Archivo no encontrado",
-                "Primero genera la matriz para crear el árbol."
-            )
-            return
-
-        # Verificar contenido por indicación de árbol grande (si aplica)
-        try:
-            with open(ruta_dot, "r", encoding="utf-8") as f:
-                contenido = f.read()
-                if "demasiados nodos" in contenido:
-                    messagebox.showinfo(
-                        "Árbol muy grande",
-                        "El árbol fue generado, pero no se visualiza completo porque tiene demasiados nodos. "
-                        "Use n pequeño (por ejemplo 4 a 8) para ver el árbol visual."
-                    )
-                    return
-        except Exception:
-            pass
-
-        # Localizar ejecutable 'dot'
-        dot_exec = self.find_dot_executable()
-        if not dot_exec:
-            messagebox.showerror(
-                "Graphviz no encontrado",
-                "Graphviz no está instalado o no está agregado al PATH.\n\n"
-                "Instale Graphviz desde https://graphviz.org/download/ y verifique con:\n"
-                "  dot -V"
-            )
-            return
-
-        # Ejecutar Graphviz usando la ruta completa encontrada
-        try:
-            subprocess.run([dot_exec, "-Tpng", ruta_dot, "-o", ruta_salida], check=True, capture_output=True)
-            os.startfile(ruta_salida)
-        except subprocess.CalledProcessError as e:
-            messagebox.showerror("Error al generar imagen", f"No se pudo generar la imagen del árbol.\n{e}")
-        except Exception as e:
-            messagebox.showerror("Error", f"Ocurrió un error inesperado:\n{e}")
-
-    def find_dot_executable(self):
-        """
-        Busca el ejecutable 'dot' de Graphviz únicamente en el PATH.
-
-        Graphviz se usa solo para visualizar el árbol en imagen.
-        No construye el árbol ni reemplaza ningún algoritmo del proyecto.
-        """
-        try:
-            return shutil.which("dot")
-        except Exception:
-            return None
 
     def guardar_texto_en_archivo(self, nombre_archivo, contenido):
         carpeta_resultados = "resultados"

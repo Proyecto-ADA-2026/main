@@ -759,43 +759,4 @@ def arbol_a_json_texto(raiz):
     return json.dumps(diccionario, indent=4, ensure_ascii=False)
 
 
-def exportar_arbol_dot(raiz, nombre_grafo="Arbol"):
-    lineas = []
-    lineas.append(f"digraph {nombre_grafo} {{")
-    lineas.append("    node [shape=circle];")
 
-    contador = [0]
-
-    def recorrer(nodo):
-        if nodo is None:
-            return None
-
-        id_actual = contador[0]
-        contador[0] += 1
-
-        if hasattr(nodo, 'dato'):
-            if isinstance(nodo.dato, dict):
-                # Formato JSON: {"valor": num, "cantidad": freq}
-                label = f"{nodo.dato['valor']} | cant: {nodo.dato['cantidad']}"
-            else:
-                # Formato tupla antiguo: (valor, cantidad)
-                label = f"{nodo.dato[0]} | cant: {nodo.dato[1]}"
-        else:
-            label = str(nodo.valor)
-
-        lineas.append(f'    nodo{id_actual} [label="{label}"];')
-
-        id_izq = recorrer(nodo.izquierda)
-        if id_izq is not None:
-            lineas.append(f'    nodo{id_actual} -> nodo{id_izq};')
-
-        id_der = recorrer(nodo.derecha)
-        if id_der is not None:
-            lineas.append(f'    nodo{id_actual} -> nodo{id_der};')
-
-        return id_actual
-
-    recorrer(raiz)
-
-    lineas.append('}')
-    return "\n".join(lineas)

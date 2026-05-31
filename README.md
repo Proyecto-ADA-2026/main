@@ -33,8 +33,8 @@ Calcular A³.
 Ver el análisis de ambas matrices.
 Buscar un número en matriz y árbol.
 Abrir archivos .txt.
-Abrir archivos .dot.
 Ver las matrices en tabla si está instalada la librería opcional tksheet.
+Ver la representación ASCII del árbol binario.
 
 Proyecto_final.py
 
@@ -51,7 +51,7 @@ Construcción de árbol binario equilibrado.
 Búsqueda en matriz.
 Búsqueda en árbol.
 Medición de tiempos.
-Exportación del árbol en formato DOT.
+Exportación del árbol en formato JSON.
 Requisitos del taller
 1. Matriz A y cálculo de A³
 
@@ -146,7 +146,8 @@ Este procedimiento evita construir el árbol insertando los elementos en el orde
 - Recorrido inorden.
 - Cálculo de altura.
 - Conteo de nodos.
-- Exportación a archivo DOT para visualización.
+- Exportación a archivo JSON con estructura anidada.
+- Visualización en formato ASCII en la interfaz gráfica.
 
 ## Análisis de memoria
 

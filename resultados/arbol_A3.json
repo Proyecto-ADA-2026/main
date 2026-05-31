@@ -1,0 +1,66 @@
+{
+    "valor": 636,
+    "cantidad": 1,
+    "izquierda": {
+        "valor": 325,
+        "cantidad": 1,
+        "izquierda": {
+            "valor": 150,
+            "cantidad": 2,
+            "izquierda": null,
+            "derecha": {
+                "valor": 175,
+                "cantidad": 1,
+                "izquierda": null,
+                "derecha": null
+            }
+        },
+        "derecha": {
+            "valor": 480,
+            "cantidad": 2,
+            "izquierda": {
+                "valor": 360,
+                "cantidad": 1,
+                "izquierda": null,
+                "derecha": null
+            },
+            "derecha": {
+                "valor": 520,
+                "cantidad": 2,
+                "izquierda": null,
+                "derecha": null
+            }
+        }
+    },
+    "derecha": {
+        "valor": 864,
+        "cantidad": 1,
+        "izquierda": {
+            "valor": 666,
+            "cantidad": 1,
+            "izquierda": null,
+            "derecha": {
+                "valor": 729,
+                "cantidad": 1,
+                "izquierda": null,
+                "derecha": null
+            }
+        },
+        "derecha": {
+            "valor": 1014,
+            "cantidad": 1,
+            "izquierda": {
+                "valor": 910,
+                "cantidad": 1,
+                "izquierda": null,
+                "derecha": null
+            },
+            "derecha": {
+                "valor": 1263,
+                "cantidad": 1,
+                "izquierda": null,
+                "derecha": null
+            }
+        }
+    }
+}
