@@ -6,16 +6,20 @@ sin Graphviz.
 
 import os
 import sys
+from pathlib import Path
 
-from Proyecto_final import (
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+
+from logica_arbol import (
     crear_matriz,
     calcular_A3,
     analizar_matriz,
     contar_repeticiones,
     frecuencias_a_json_ordenado,
     construir_arbol_json_equilibrado,
-    arbol_a_json_texto,
 )
+from gestor_txt import arbol_a_json_texto
 
 def test_json_export():
     """Prueba la generación y exportación de árboles en JSON."""
@@ -60,17 +64,18 @@ def test_json_export():
     print("   ✓ Árboles convertidos a JSON")
     
     print(f"\n8. Guardando archivos JSON...")
-    os.makedirs("resultados", exist_ok=True)
-    with open("resultados/arbol_A.json", "w", encoding="utf-8") as f:
+    resultados_dir = ROOT / "resultados"
+    resultados_dir.mkdir(exist_ok=True)
+    with open(resultados_dir / "arbol_A.json", "w", encoding="utf-8") as f:
         f.write(json_A)
-    with open("resultados/arbol_A3.json", "w", encoding="utf-8") as f:
+    with open(resultados_dir / "arbol_A3.json", "w", encoding="utf-8") as f:
         f.write(json_A3)
     print("   ✓ resultados/arbol_A.json guardado")
     print("   ✓ resultados/arbol_A3.json guardado")
     
     print(f"\n9. Verificando que NO se generaron archivos .dot o .png...")
-    dot_exists = os.path.exists("resultados/arbol_A.dot")
-    png_exists = os.path.exists("resultados/arbol_A.png")
+    dot_exists = os.path.exists(str(ROOT / "resultados" / "arbol_A.dot"))
+    png_exists = os.path.exists(str(ROOT / "resultados" / "arbol_A.png"))
     if not dot_exists and not png_exists:
         print("   ✓ Correcto: No se generaron .dot ni .png")
     else:

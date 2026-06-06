@@ -4,13 +4,6 @@
 # Este archivo contiene todos los algoritmos requeridos para el análisis de
 # matrices, conteo de frecuencias, ordenamientos, construcción y búsqueda en 
 # árboles binarios equilibrados (BST).
-#
-# REGLAS ESTRICTAS DE IMPLEMENTACIÓN:
-# 1. No se utiliza .append()
-# 2. No se utiliza .extend()
-# 3. No se utiliza .join()
-# 4. Todo se realiza a pie con bucles 'for', 'while' e instrucciones 'if/else'.
-# 5. Comentarios detallados línea por línea en español.
 # ==============================================================================
 
 import random         # Importa el módulo random para generar números aleatorios.

@@ -1,6 +1,6 @@
 import time
 import random
-from Proyecto_final import (
+from logica_arbol import (
     crear_matriz,
     calcular_A3,
     matriz_a_vector,
