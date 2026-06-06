@@ -17,6 +17,7 @@ resultados/*.dot
 resultados/*.png
 resultados/*.svg
 resultados/*.pdf
+resultados/*.json
 
 # Archivos temporales de Office o Windows
 ~$*
@@ -34,3 +35,4 @@ Thumbs.db
 
 # Mantener la carpeta resultados en el repositorio si se desea
 !resultados/.gitkeep
+

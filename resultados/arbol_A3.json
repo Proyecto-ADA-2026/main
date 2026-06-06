@@ -2,38 +2,38 @@
   "arbol": "Raiz",
   "descripcion": "BST equilibrado. Nodos: valor, cantidad, izquierda, derecha.",
   "estructura": {
-    "valor": 896,
+    "valor": 514,
     "cantidad": 1,
     "izquierda": {
-      "valor": 688,
+      "valor": 447,
       "cantidad": 1,
       "izquierda": {
-        "valor": 500,
+        "valor": 387,
         "cantidad": 1,
         "izquierda": {
-          "valor": 472,
+          "valor": 371,
           "cantidad": 1,
           "izquierda": null,
           "derecha": null
         },
         "derecha": {
-          "valor": 609,
+          "valor": 405,
           "cantidad": 1,
           "izquierda": null,
           "derecha": null
         }
       },
       "derecha": {
-        "valor": 813,
+        "valor": 472,
         "cantidad": 1,
         "izquierda": {
-          "valor": 801,
+          "valor": 465,
           "cantidad": 1,
           "izquierda": null,
           "derecha": null
         },
         "derecha": {
-          "valor": 892,
+          "valor": 476,
           "cantidad": 1,
           "izquierda": null,
           "derecha": null
@@ -41,39 +41,39 @@
       }
     },
     "derecha": {
-      "valor": 1230,
+      "valor": 812,
       "cantidad": 1,
       "izquierda": {
-        "valor": 991,
+        "valor": 713,
         "cantidad": 1,
         "izquierda": {
-          "valor": 974,
+          "valor": 578,
           "cantidad": 1,
           "izquierda": null,
           "derecha": null
         },
         "derecha": {
-          "valor": 1043,
+          "valor": 732,
           "cantidad": 1,
           "izquierda": null,
           "derecha": null
         }
       },
       "derecha": {
-        "valor": 1526,
+        "valor": 846,
         "cantidad": 1,
         "izquierda": {
-          "valor": 1466,
+          "valor": 827,
           "cantidad": 1,
           "izquierda": null,
           "derecha": null
         },
         "derecha": {
-          "valor": 1669,
+          "valor": 978,
           "cantidad": 1,
           "izquierda": null,
           "derecha": {
-            "valor": 1773,
+            "valor": 1488,
             "cantidad": 1,
             "izquierda": null,
             "derecha": null
