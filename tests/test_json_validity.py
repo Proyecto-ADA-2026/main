@@ -1,7 +1,10 @@
 import json
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
 
 try:
-    with open("resultados/arbol_A.json") as f:
+    with open(ROOT / "resultados" / "arbol_A.json") as f:
         arbol_A = json.load(f)
     print("✓ arbol_A.json es JSON válido")
     print(f"  - Raíz: valor={arbol_A['valor']}, cantidad={arbol_A['cantidad']}")
@@ -10,7 +13,7 @@ except Exception as e:
     print(f"✗ Error en arbol_A.json: {e}")
 
 try:
-    with open("resultados/arbol_A3.json") as f:
+    with open(ROOT / "resultados" / "arbol_A3.json") as f:
         arbol_A3 = json.load(f)
     print("✓ arbol_A3.json es JSON válido")
     print(f"  - Raíz: valor={arbol_A3['valor']}, cantidad={arbol_A3['cantidad']}")

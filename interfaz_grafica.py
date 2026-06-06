@@ -1,14 +1,13 @@
 """
 interfaz_grafica.py
 Frontend del proyecto: ventana grafica, botones y visualizacion de resultados.
-Backend (algoritmos puros): Proyecto_final.py
+Backend (algoritmos puros): logica_arbol.py
 
 """
 
 import tkinter as tk                 # Libreria para crear la ventana grafica en escritorio
 from tkinter import ttk, messagebox  # ttk = widgets modernos; messagebox = dialogos de alerta
-from servicios.gestor_archivos import GestorArchivos
-from servicios.constructor_texto import ConstructorTexto
+from gestor_txt import GestorArchivos, ConstructorTexto
 
 MAX_N = 150                          # Tamano maximo de n (A3 cuesta O(n3) en tiempo y O(n2) en memoria)
 
@@ -18,7 +17,7 @@ try:
 except ImportError:
     TKSHEET_DISPONIBLE = False       # Si no esta instalada, los botones de tabla mostraran aviso
 
-from Proyecto_final import (
+from logica_arbol import (
     crear_matriz,                     # Genera matriz n*n con numeros aleatorios 0-9
     calcular_A3,                      # Calcula A3 = A*A*A con multiplicacion propia O(n3)
     guardar_A3_directo_txt,           # Calcula y guarda A3 fila por fila para matrices grandes

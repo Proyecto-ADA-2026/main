@@ -16,12 +16,15 @@ El sistema permite generar una matriz `n x n` con números aleatorios entre `0` 
 
 ## Estructura del proyecto
 
-El proyecto está separado en dos partes:
+El proyecto está separado en tres partes principales:
 
 ```text
 interfaz_grafica.py  -> Frontend / interfaz gráfica
-Proyecto_final.py    -> Backend / lógica algorítmica
-interfaz_grafica.py
+logica_arbol.py      -> Backend / lógica algorítmica
+gestor_txt.py        -> Generación de texto y guardado de archivos
+README.md            -> Documentación del proyecto
+tests/               -> Pruebas automáticas
+```
 
 Contiene la interfaz gráfica desarrollada con Tkinter.
 
@@ -33,10 +36,10 @@ Calcular A³.
 Ver el análisis de ambas matrices.
 Buscar un número en matriz y árbol.
 Abrir archivos .txt.
-Abrir archivos .dot.
+Abrir archivos .json.
 Ver las matrices en tabla si está instalada la librería opcional tksheet.
 
-Proyecto_final.py
+logica_arbol.py
 
 Contiene toda la lógica algorítmica del proyecto:
 
@@ -52,6 +55,11 @@ Búsqueda en matriz.
 Búsqueda en árbol.
 Medición de tiempos.
 Exportación del árbol en formato DOT.
+
+gestor_txt.py
+
+Contiene los helpers para generar texto legible y guardar archivos en la carpeta resultados.
+
 Requisitos del taller
 1. Matriz A y cálculo de A³
 
@@ -266,7 +274,7 @@ El archivo DOT es texto, por eso si se abre directamente se verá algo como:
 digraph ArbolA { ... }
 ```
 
-Para verlo como imagen se necesita Graphviz. Graphviz se usa únicamente para la parte gráfica/visual, no para construir el árbol ni para resolver algoritmos. La lógica del árbol sigue implementada manualmente en `Proyecto_final.py`.
+Para verlo como imagen se necesita Graphviz. Graphviz se usa únicamente para la parte gráfica/visual, no para construir el árbol ni para resolver algoritmos. La lógica del árbol sigue implementada manualmente en `logica_arbol.py`.
 
 Graphviz permite convertir:
 
@@ -476,7 +484,7 @@ Recomendación para sustentación
 
 Se puede explicar así:
 
-El proyecto se separó en dos capas. Proyecto_final.py contiene la lógica algorítmica del taller, mientras que interfaz_grafica.py contiene la interfaz gráfica. El sistema genera la matriz A, calcula A³, analiza ambas matrices, ordena sus elementos, cuenta repeticiones y construye árboles binarios equilibrados para comparar tiempos de búsqueda.
+El proyecto se separó en dos capas. `logica_arbol.py` contiene la lógica algorítmica del taller, `gestor_txt.py` maneja la generación de texto y guardado de archivos, y `interfaz_grafica.py` contiene la interfaz gráfica. El sistema genera la matriz A, calcula A³, analiza ambas matrices, ordena sus elementos, cuenta repeticiones y construye árboles binarios equilibrados para comparar tiempos de búsqueda.
 
 También se puede aclarar:
 

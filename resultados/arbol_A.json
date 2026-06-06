@@ -1,41 +1,41 @@
 {
-  "arbol": "ArbolA",
+  "arbol": "Raiz",
   "descripcion": "BST equilibrado. Nodos: valor, cantidad, izquierda, derecha.",
   "estructura": {
-    "valor": 3,
+    "valor": 4,
     "cantidad": 4,
     "izquierda": {
-      "valor": 1,
-      "cantidad": 2,
+      "valor": 2,
+      "cantidad": 1,
       "izquierda": {
-        "valor": 0,
-        "cantidad": 1,
+        "valor": 1,
+        "cantidad": 3,
         "izquierda": null,
         "derecha": null
       },
       "derecha": {
-        "valor": 2,
-        "cantidad": 1,
+        "valor": 3,
+        "cantidad": 3,
         "izquierda": null,
         "derecha": null
       }
     },
     "derecha": {
-      "valor": 7,
+      "valor": 6,
       "cantidad": 1,
       "izquierda": {
-        "valor": 6,
-        "cantidad": 2,
+        "valor": 5,
+        "cantidad": 1,
         "izquierda": null,
         "derecha": null
       },
       "derecha": {
-        "valor": 8,
-        "cantidad": 3,
+        "valor": 7,
+        "cantidad": 2,
         "izquierda": null,
         "derecha": {
           "valor": 9,
-          "cantidad": 2,
+          "cantidad": 1,
           "izquierda": null,
           "derecha": null
         }

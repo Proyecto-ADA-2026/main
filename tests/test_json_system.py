@@ -4,7 +4,7 @@
 Test final completo del sistema JSON
 """
 
-from Proyecto_final import (
+from logica_arbol import (
     crear_matriz, calcular_A3, contar_repeticiones,
     frecuencias_a_json_ordenado, construir_arbol_json_equilibrado,
     buscar_en_arbol_json, contar_nodos_arbol_json, altura_arbol_json,
