@@ -1,114 +1,85 @@
-[
-    {
-        "id": 0,
-        "valor": 695,
+{
+  "arbol": "ArbolA3",
+  "descripcion": "BST equilibrado. Nodos: valor, cantidad, izquierda, derecha.",
+  "estructura": {
+    "valor": 1581,
+    "cantidad": 1,
+    "izquierda": {
+      "valor": 460,
+      "cantidad": 1,
+      "izquierda": {
+        "valor": 327,
         "cantidad": 1,
-        "izquierda": 1,
-        "derecha": 8
+        "izquierda": {
+          "valor": 308,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": null
+        },
+        "derecha": {
+          "valor": 356,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": null
+        }
+      },
+      "derecha": {
+        "valor": 1224,
+        "cantidad": 1,
+        "izquierda": {
+          "valor": 1180,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": null
+        },
+        "derecha": {
+          "valor": 1239,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": null
+        }
+      }
     },
-    {
-        "id": 1,
-        "valor": 620,
+    "derecha": {
+      "valor": 2483,
+      "cantidad": 1,
+      "izquierda": {
+        "valor": 1861,
         "cantidad": 1,
-        "izquierda": 2,
-        "derecha": 5
-    },
-    {
-        "id": 2,
-        "valor": 561,
+        "izquierda": {
+          "valor": 1641,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": null
+        },
+        "derecha": {
+          "valor": 1909,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": null
+        }
+      },
+      "derecha": {
+        "valor": 2639,
         "cantidad": 1,
-        "izquierda": 3,
-        "derecha": 4
-    },
-    {
-        "id": 3,
-        "valor": 553,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 4,
-        "valor": 613,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 5,
-        "valor": 672,
-        "cantidad": 1,
-        "izquierda": 6,
-        "derecha": 7
-    },
-    {
-        "id": 6,
-        "valor": 647,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 7,
-        "valor": 678,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 8,
-        "valor": 1192,
-        "cantidad": 1,
-        "izquierda": 9,
-        "derecha": 12
-    },
-    {
-        "id": 9,
-        "valor": 1010,
-        "cantidad": 1,
-        "izquierda": 10,
-        "derecha": 11
-    },
-    {
-        "id": 10,
-        "valor": 992,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 11,
-        "valor": 1082,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 12,
-        "valor": 1325,
-        "cantidad": 1,
-        "izquierda": 13,
-        "derecha": 14
-    },
-    {
-        "id": 13,
-        "valor": 1304,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
-    },
-    {
-        "id": 14,
-        "valor": 1536,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": 15
-    },
-    {
-        "id": 15,
-        "valor": 1766,
-        "cantidad": 1,
-        "izquierda": null,
-        "derecha": null
+        "izquierda": {
+          "valor": 2556,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": null
+        },
+        "derecha": {
+          "valor": 2810,
+          "cantidad": 1,
+          "izquierda": null,
+          "derecha": {
+            "valor": 3574,
+            "cantidad": 1,
+            "izquierda": null,
+            "derecha": null
+          }
+        }
+      }
     }
-]
+  }
+}
