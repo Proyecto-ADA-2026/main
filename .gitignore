@@ -33,6 +33,6 @@ windows_10_cmake_Release_Graphviz*/
 .DS_Store
 Thumbs.db
 
-# Mantener la carpeta resultados en el repositorio si se desea
+# Mantener la carpeta resultados vacía en el repositorio
 !resultados/.gitkeep
 
