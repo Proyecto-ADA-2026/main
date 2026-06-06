@@ -34,7 +34,3 @@ Thumbs.db
 
 # Mantener la carpeta resultados en el repositorio si se desea
 !resultados/.gitkeep
-
-
-arbol_A.json
-arbol_A3.json

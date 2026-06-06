@@ -4,13 +4,12 @@
 Test final completo del sistema JSON
 """
 
-import json
 from Proyecto_final import (
     crear_matriz, calcular_A3, contar_repeticiones,
     frecuencias_a_json_ordenado, construir_arbol_json_equilibrado,
     buscar_en_arbol_json, contar_nodos_arbol_json, altura_arbol_json,
     recorrido_inorden_json, buscar_y_contar_en_matriz, arbol_a_ascii,
-    arbol_a_json_texto, medir_tiempo, analizar_matriz,
+    exportar_arbol_dot, medir_tiempo, analizar_matriz,
     matriz_a_vector, ordenar_ascendente
 )
 
@@ -75,15 +74,20 @@ print("\n✓ Test 7: Recorrido inorden")
 inorden = recorrido_inorden_json(tree_A)
 print(f"  Inorden A: {inorden}")
 
-# Test 8: Exportar árbol a JSON
-print("\n✓ Test 8: Exportar árbol a JSON")
+# Test 8: Exportar DOT
+print("\n✓ Test 8: Exportar DOT")
 try:
-    json_tree = arbol_a_json_texto(tree_A)
-    parsed = json.loads(json_tree)
-    print(f"  Árbol A exportado a JSON correctamente ({len(json_tree)} caracteres)")
-    print(f"  Nodos en JSON: {len(parsed)}")
+    dot_content = exportar_arbol_dot(tree_A)
+    if "digraph" in dot_content:
+        print(f"  Archivo DOT generado correctamente ({len(dot_content)} caracteres)")
+        lines = dot_content.split('\n')
+        print(f"  Primeras líneas:")
+        for line in lines[:3]:
+            print(f"    {line}")
+    else:
+        print(f"  Advertencia: formato DOT no tiene 'digraph'")
 except Exception as e:
-    print(f"  Error en arbol_a_json_texto: {e}")
+    print(f"  Error en exportar_arbol_dot: {e}")
 
 # Test 9: Visualización ASCII
 print("\n✓ Test 9: Visualización ASCII")

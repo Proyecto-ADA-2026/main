@@ -3,13 +3,11 @@ import random
 from Proyecto_final import (
     crear_matriz,
     calcular_A3,
-    contar_repeticiones,
-    frecuencias_a_json_ordenado,
     matriz_a_vector,
     ordenar_ascendente,
-    construir_arbol_json_equilibrado,
+    construir_arbol_equilibrado,
     buscar_en_matriz,
-    buscar_en_arbol_json,
+    buscar_en_arbol,
 )
 
 
@@ -40,32 +38,34 @@ for n in (4, 8, 20, 21, 200):
     vA3_copy = list(vector_A3)
     vA3_ord, t_ordA3 = medir_accion("Ordenar vector A3 (custom)", ordenar_ascendente, vA3_copy)
 
-    # Construir árbol JSON equilibrado a partir de frecuencias
-    rep_A = contar_repeticiones(A)
-    rep_A3 = contar_repeticiones(A3)
-
+    # Construir árbol equilibrado
     t0 = time.perf_counter_ns()
-    arbolA = construir_arbol_json_equilibrado(frecuencias_a_json_ordenado(rep_A), 0, len(rep_A) - 1)
+    arbolA = construir_arbol_equilibrado(vA_ord, 0, len(vA_ord)-1)
     t1 = time.perf_counter_ns()
     t_buildA = t1 - t0
     print(f"Construir árbol A: {t_buildA} ns")
 
     t0 = time.perf_counter_ns()
-    arbolA3 = construir_arbol_json_equilibrado(frecuencias_a_json_ordenado(rep_A3), 0, len(rep_A3) - 1)
+    arbolA3 = construir_arbol_equilibrado(vA3_ord, 0, len(vA3_ord)-1)
     t1 = time.perf_counter_ns()
     t_buildA3 = t1 - t0
     print(f"Construir árbol A3: {t_buildA3} ns")
 
     # Seleccionar un valor a buscar (toma uno existente si es posible)
-    buscado = random.choice(vector_A) if vector_A else 0
+    buscado = None
+    if vector_A:
+        buscado = random.choice(vector_A)
+    else:
+        buscado = 0
+
     print(f"Valor a buscar: {buscado}")
 
     # Buscar en matriz y árbol
     _, t_bus_mat = medir_accion("Buscar en matriz A", buscar_en_matriz, A, buscado)
-    _, t_bus_ar = medir_accion("Buscar en árbol A", buscar_en_arbol_json, arbolA, buscado)
+    _, t_bus_ar = medir_accion("Buscar en árbol A", buscar_en_arbol, arbolA, buscado)
 
     _, t_bus_mat3 = medir_accion("Buscar en matriz A3", buscar_en_matriz, A3, buscado)
-    _, t_bus_ar3 = medir_accion("Buscar en árbol A3", buscar_en_arbol_json, arbolA3, buscado)
+    _, t_bus_ar3 = medir_accion("Buscar en árbol A3", buscar_en_arbol, arbolA3, buscado)
 
     print("Resumen tiempos (ns): gen, A3, vec, ord, buildA, buildA3, b_mat, b_ar, b_mat3, b_ar3")
     print(t_gen, t_a3, t_vecA, t_ordA, t_buildA, t_buildA3, t_bus_mat, t_bus_ar, t_bus_mat3, t_bus_ar3)

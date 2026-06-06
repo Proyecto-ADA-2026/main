@@ -33,8 +33,8 @@ Calcular A³.
 Ver el análisis de ambas matrices.
 Buscar un número en matriz y árbol.
 Abrir archivos .txt.
+Abrir archivos .dot.
 Ver las matrices en tabla si está instalada la librería opcional tksheet.
-Ver la representación ASCII del árbol binario.
 
 Proyecto_final.py
 
@@ -51,7 +51,7 @@ Construcción de árbol binario equilibrado.
 Búsqueda en matriz.
 Búsqueda en árbol.
 Medición de tiempos.
-Exportación del árbol en formato JSON.
+Exportación del árbol en formato DOT.
 Requisitos del taller
 1. Matriz A y cálculo de A³
 
@@ -146,34 +146,7 @@ Este procedimiento evita construir el árbol insertando los elementos en el orde
 - Recorrido inorden.
 - Cálculo de altura.
 - Conteo de nodos.
-- Exportación a archivo JSON plano por nodos.
-- Visualización en formato ASCII en la interfaz gráfica.
-
-## Visualización del árbol en JSON
-
-El proyecto no usa Graphviz para visualizar el árbol. En su lugar, el árbol binario de búsqueda equilibrado se exporta y se visualiza en formato JSON plano por nodos.
-
-Cada nodo tiene la siguiente estructura:
-
-```
-{
-    "id": 0,
-    "valor": 5,
-    "cantidad": 8,
-    "izquierda": 1,
-    "derecha": 2
-}
-```
-
-Donde:
-- `id` identifica el nodo.
-- `valor` es el número almacenado.
-- `cantidad` indica cuántas veces aparece ese valor en la matriz.
-- `izquierda` contiene el id del hijo izquierdo.
-- `derecha` contiene el id del hijo derecho.
-- si `izquierda` o `derecha` es `null`, significa que el nodo no tiene hijo en ese lado.
-
-Este formato permite revisar la estructura del árbol sin depender de herramientas externas. Además, facilita explicar la búsqueda: si el dato buscado es menor que el valor del nodo actual, se continúa por izquierda; si es mayor, por derecha; si es igual, se encontró el dato.
+- Exportación a archivo DOT para visualización.
 
 ## Análisis de memoria
 
@@ -215,8 +188,8 @@ Dentro de esta carpeta se generan archivos como:
 
 matriz_A.txt
 matriz_A3.txt
-arbol_A.json
-arbol_A3.json
+arbol_A.dot
+arbol_A3.dot
 Archivos .txt
 
 Contienen las matrices completas.
@@ -228,16 +201,16 @@ resultados/matriz_A3.txt
 
 Estos archivos sirven especialmente cuando la matriz es grande y no conviene mostrarla completa dentro de la interfaz.
 
-Archivos JSON
+Archivos .dot
 
-Contienen la representación del árbol como una lista plana de nodos.
+Contienen la representación del árbol en formato DOT.
 
 Ejemplo:
 
-resultados/arbol_A.json
-resultados/arbol_A3.json
+resultados/arbol_A.dot
+resultados/arbol_A3.dot
 
-Estos archivos permiten revisar la estructura del árbol sin usar herramientas externas.
+Estos archivos se pueden abrir con un visor de Graphviz para ver el árbol como gráfico.
 
 Instalación y ejecución
 1. Clonar el repositorio
@@ -280,26 +253,53 @@ pip install tksheet
 
 Si no se instala tksheet, el programa sigue funcionando, pero no se abrirá la vista tipo tabla.
 
-Visualización de árboles en JSON
+Visualización de árboles con Graphviz
 
-El programa exporta los árboles binarios en formato JSON plano por nodos:
+El programa exporta los árboles binarios en formato DOT:
 
-- resultados/arbol_A.json
-- resultados/arbol_A3.json
+- resultados/arbol_A.dot
+- resultados/arbol_A3.dot
 
-Este archivo contiene una lista de nodos donde cada nodo incluye su `id`, `valor`, `cantidad`, `izquierda` y `derecha`.
+El archivo DOT es texto, por eso si se abre directamente se verá algo como:
 
-El proyecto no usa Graphviz ni genera imágenes PNG. La lógica del árbol sigue implementada manualmente en `Proyecto_final.py`.
+```
+digraph ArbolA { ... }
+```
 
-Para ver el árbol se puede usar:
+Para verlo como imagen se necesita Graphviz. Graphviz se usa únicamente para la parte gráfica/visual, no para construir el árbol ni para resolver algoritmos. La lógica del árbol sigue implementada manualmente en `Proyecto_final.py`.
 
-- "Ver JSON Árbol A" dentro de la aplicación.
-- "Ver JSON Árbol A³" dentro de la aplicación.
-- "Abrir JSON Árbol A" para abrir `resultados/arbol_A.json`.
-- "Abrir JSON Árbol A³" para abrir `resultados/arbol_A3.json`.
+Graphviz permite convertir:
 
-Graphviz no forma parte de este proyecto.
+- `resultados/arbol_A.dot` -> `resultados/arbol_A.png`
+- `resultados/arbol_A3.dot` -> `resultados/arbol_A3.png`
 
+Comando para verificar Graphviz:
+
+```
+dot -V
+start resultados\arbol_A.png
+```
+
+Si `dot -V` no funciona, significa que Graphviz no está instalado o no está agregado al PATH.
+
+Comando manual para generar una imagen:
+
+```
+dot -Tpng resultados/arbol_A.dot -o resultados/arbol_A.png
+```
+
+Comando para abrir la imagen en Windows:
+
+```
+start resultados\arbol_A.png
+```
+
+Graphviz no reemplaza ningún algoritmo del taller:
+
+- No genera la matriz.
+- No calcula A³.
+- No construye el árbol.
+- Solo dibuja el árbol ya generado por el programa.
 
 Los árboles grandes no se grafican completos porque pueden tener demasiados nodos. Para ver el árbol visual se recomienda usar `n` pequeño, por ejemplo:
 
@@ -307,7 +307,7 @@ Los árboles grandes no se grafican completos porque pueden tener demasiados nod
 - n = 5
 - n = 8
 
-Los archivos JSON y TXT dentro de resultados son archivos generados por ejecución, por eso normalmente no se suben al repositorio.
+Los archivos PNG, DOT y TXT dentro de resultados son archivos generados por ejecución, por eso normalmente no se suben al repositorio.
 
 Uso del programa
 Ejecutar:
@@ -362,25 +362,17 @@ Abre:
 
 resultados/matriz_A3.txt
 
-Ver JSON Árbol A
-
-Muestra el árbol A en formato JSON plano por nodos dentro de la aplicación.
-
-Ver JSON Árbol A³
-
-Muestra el árbol A³ en formato JSON plano por nodos dentro de la aplicación.
-
-Abrir JSON Árbol A
+Ver gráfico Árbol A
 
 Abre:
 
-resultados/arbol_A.json
+resultados/arbol_A.dot
 
-Abrir JSON Árbol A³
+Ver gráfico Árbol A³
 
 Abre:
 
-resultados/arbol_A3.json
+resultados/arbol_A3.dot
 
 Ver tabla Matriz A
 
