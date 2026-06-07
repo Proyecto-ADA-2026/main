@@ -9,7 +9,7 @@
 import random         # Importa el módulo random para generar números aleatorios.
 import time           # Importa el módulo time para medir el tiempo de ejecución.
 import tracemalloc    # Importa el módulo tracemalloc para medir el uso de memoria RAM.
-
+ 
 
 def unir_con_delimitador(lista, delimitador):
     """Une una lista de elementos en un solo string usando un delimitador manual."""
