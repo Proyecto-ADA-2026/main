@@ -37,7 +37,6 @@ Ver el análisis de ambas matrices.
 Buscar un número en matriz y árbol.
 Abrir archivos .txt.
 Abrir archivos .json.
-Ver las matrices en tabla si está instalada la librería opcional tksheet.
 
 logica_arbol.py
 
@@ -127,6 +126,8 @@ También mide los tiempos de ejecución y muestra cuál búsqueda fue más rápi
 
 En este proyecto se usa un Árbol Binario de Búsqueda Equilibrado de Frecuencias. Se eligió este árbol porque permite representar los elementos de la matriz sin repetir nodos innecesariamente. Cada nodo almacena un diccionario JSON de la forma `{"valor": numero, "cantidad": frecuencia}`, donde `valor` corresponde al número encontrado en la matriz y `cantidad` indica cuántas veces aparece.
 
+Aunque el árbol no guarda un nodo por cada celda de la matriz, todos los elementos están representados: la suma de las cantidades de todos los nodos debe ser igual a `n²`. Por ejemplo, si la matriz tiene 16 posiciones, el árbol puede tener menos nodos porque agrupa valores repetidos, pero la suma de sus frecuencias debe seguir dando 16.
+
 La comparación entre nodos se realiza usando únicamente el valor numérico almacenado en `"valor"`. Si el dato buscado es menor que este valor, la búsqueda continúa por el subárbol izquierdo. Si es mayor, continúa por el subárbol derecho. Si es igual, el dato fue encontrado y se retorna el diccionario con su frecuencia.
 
 ## Restricciones del sistema
@@ -144,7 +145,7 @@ La comparación entre nodos se realiza usando únicamente el valor numérico alm
 
 Para construir el árbol binario de búsqueda equilibrado, primero se pasan los elementos de la matriz a un vector unidimensional. Luego el vector se ordena de forma ascendente usando algoritmos propios. Después se toma el elemento central como raíz del árbol. Los elementos de la mitad izquierda forman el subárbol izquierdo y los elementos de la mitad derecha forman el subárbol derecho. Este proceso se repite recursivamente hasta insertar todos los elementos.
 
-Este procedimiento evita construir el árbol insertando los elementos en el orden original, ya que eso podría generar un árbol desbalanceado o similar a una lista. Al quedar equilibrado, la búsqueda depende de la altura del árbol y se acerca a O(log n), mientras que buscar directamente en la matriz requiere recorrer hasta n² elementos en el peor caso.
+Este procedimiento evita construir el árbol insertando los elementos en el orden original, ya que eso podría generar un árbol desbalanceado o similar a una lista. Al quedar equilibrado, la búsqueda depende de la altura del árbol y se acerca a `O(log u)`, donde `u` es la cantidad de valores únicos. Buscar directamente en la matriz requiere recorrer hasta `n²` elementos en el peor caso, por eso tiene costo `O(n²)`.
 
 ## Operaciones soportadas por el árbol
 
@@ -184,7 +185,7 @@ El árbol de frecuencias usa menos nodos que un árbol con todos los elementos r
 | Contar repeticiones | O(n²) |
 | Construir árbol equilibrado desde vector ordenado | O(m), donde m = n² |
 | Buscar en matriz | O(n²) |
-| Buscar en árbol equilibrado | O(log m), donde m = n² |
+| Buscar en árbol equilibrado de frecuencias | O(log u), donde u = valores únicos |
 
 Archivos generados
 
@@ -240,26 +241,6 @@ tkinter
 random
 time
 os
-
-También puede usar opcionalmente:
-
-tksheet
-
-tksheet solo se usa para mostrar matrices como tabla en la interfaz.
-No se usa para calcular, ordenar, buscar ni construir estructuras algorítmicas.
-
-Instalación opcional de tksheet
-
-Para usar los botones:
-
-Ver tabla Matriz A
-Ver tabla Matriz A³
-
-instalar:
-
-pip install tksheet
-
-Si no se instala tksheet, el programa sigue funcionando, pero no se abrirá la vista tipo tabla.
 
 Visualización de árboles con Graphviz
 
@@ -381,14 +362,6 @@ Ver gráfico Árbol A³
 Abre:
 
 resultados/arbol_A3.dot
-
-Ver tabla Matriz A
-
-Muestra la matriz A en una ventana tipo tabla si tksheet está instalado.
-
-Ver tabla Matriz A³
-
-Muestra la matriz A³ en una ventana tipo tabla si tksheet está instalado.
 
 Matrices grandes
 

@@ -1,23 +1,22 @@
-"""
-interfaz_grafica.py
-Frontend del proyecto: ventana grafica, botones y visualizacion de resultados.
-Backend (algoritmos puros): logica_arbol.py
+# ==============================================================================
+# INTERFAZ GRAFICA DEL PROYECTO
+# ==============================================================================
+# Este archivo contiene la ventana principal de Tkinter, la visualizacion del
+# arbol, las validaciones de entrada y los eventos que llaman al backend.
+# ==============================================================================
 
-"""
+
+# ==============================================================================
+# IMPORTACIONES Y CONFIGURACION INICIAL
+# ==============================================================================
 
 import tkinter as tk                 # Libreria para crear la ventana grafica en escritorio
 from tkinter import ttk, messagebox  # ttk = widgets modernos; messagebox = dialogos de alerta
-from gestor_txt import GestorArchivos, ConstructorTexto
+from gestor_txt import GestorArchivos, ConstructorTexto # Servicios para archivos y textos de resumen.
 
-MAX_N = 150                          # Tamano maximo de n (A3 cuesta O(n3) en tiempo y O(n2) en memoria)
+MAX_N = 50                           # Tamano maximo de n (A3 cuesta O(n3) en tiempo y O(n2) en memoria)
 
-try:
-    import tksheet                   # Hoja de calculo interactiva (opcional)
-    TKSHEET_DISPONIBLE = True
-except ImportError:
-    TKSHEET_DISPONIBLE = False       # Si no esta instalada, los botones de tabla mostraran aviso
-
-from logica_arbol import (
+from logica_arbol import (           # Importa solo funciones algoritmicas usadas por la interfaz.
     crear_matriz,                     # Genera matriz n*n con numeros aleatorios 0-9
     calcular_A3,                      # Calcula A3 = A*A*A con multiplicacion propia O(n3)
     guardar_A3_directo_txt,           # Calcula y guarda A3 fila por fila para matrices grandes
@@ -30,7 +29,7 @@ from logica_arbol import (
     construir_arbol_json_equilibrado, # Construye BST equilibrado desde lista ordenada
     buscar_y_contar_en_matriz,        # Busqueda lineal O(n2) en la matriz con conteo
     buscar_en_arbol_json,             # Busqueda binaria O(log n) en el arbol BST
-    medir_tiempo,                     # Mide nanosegundos que tarda una funcion
+    medir_tiempo_promedio,            # Mide promedio de nanosegundos que tarda una funcion
     arbol_a_ascii,                    # Convierte el arbol a dibujo ASCII con ramas / y \
     iniciar_medicion_memoria,         # Inicia tracemalloc para medir RAM usada
     obtener_memoria_actual_y_pico,    # Lee uso actual y pico de RAM desde tracemalloc
@@ -39,14 +38,15 @@ from logica_arbol import (
     contar_nodos_arbol_json,          # Cuenta todos los nodos del arbol recursivamente
     altura_arbol_json,                # Calcula la altura (niveles) del arbol
     recorrido_inorden_json,           # Recorre el arbol en inorden (menor a mayor)
+    contar_elementos_representados_arbol, # Suma las frecuencias guardadas en el arbol
 )
 
 
-# ================================================================
-# CLASE: VisualizadorArbol
-# Responsabilidad: Dibujar graficamente el arbol BST en un Canvas.
-# Sin .append(), sin .join(), sin set().
-# ================================================================
+# ==============================================================================
+# VISUALIZADOR GRAFICO DEL ARBOL
+# ==============================================================================
+# Responsabilidad: dibujar graficamente el arbol BST en un Canvas con scroll.
+# ==============================================================================
 
 class VisualizadorArbol(tk.Toplevel):
     """Ventana emergente para visualizar el arbol BST graficamente con nodos y lineas."""
@@ -231,10 +231,11 @@ class VisualizadorArbol(tk.Toplevel):
         self.canvas.config(scrollregion=(0, 0, ancho, alto))
 
 
-# ================================================================
-# CLASE: App (ventana principal)
+# ==============================================================================
+# CLASE PRINCIPAL DE LA INTERFAZ GRAFICA
+# ==============================================================================
 # Responsabilidad: construir la GUI y manejar los eventos del usuario.
-# ================================================================
+# ==============================================================================
 
 class App(tk.Tk):
     """Ventana principal de la aplicacion. Hereda de tk.Tk."""
@@ -261,14 +262,16 @@ class App(tk.Tk):
         self._estilos()
         self._construir_ui()
 
-    # ── Estilos visuales ────────────────────────────────────────
+    # ==========================================================================
+    # ESTILOS VISUALES DE TKINTER
+    # ==========================================================================
 
     def _estilos(self):
         """Configura el tema visual de todos los widgets ttk."""
-        s = ttk.Style()
-        s.theme_use("clam")
-        s.configure("Main.TFrame",   background="#f4f6f9")
-        s.configure("Header.TFrame", background="#1f4e79")
+        s = ttk.Style()                         # Objeto que permite personalizar widgets ttk.
+        s.theme_use("clam")                     # Tema base compatible con configuracion de colores.
+        s.configure("Main.TFrame",   background="#f4f6f9") # Fondo principal.
+        s.configure("Header.TFrame", background="#1f4e79") # Franja superior.
         s.configure("Header.TLabel",    background="#1f4e79", foreground="white",   font=("Segoe UI", 18, "bold"))
         s.configure("HeaderSub.TLabel", background="#1f4e79", foreground="#d9e8f5", font=("Segoe UI", 10))
         s.configure("Card.TLabelframe",       background="#ffffff", borderwidth=1, relief="solid")
@@ -279,12 +282,14 @@ class App(tk.Tk):
         s.map("Primary.TButton", background=[("active", "#173a5c")], foreground=[("active", "white")])
         s.configure("TNotebook.Tab", font=("Segoe UI", 10, "bold"), padding=(12, 6))
 
-    # ── Construccion de la interfaz ──────────────────────────────
+    # ==========================================================================
+    # CONSTRUCCION DE WIDGETS DE LA INTERFAZ
+    # ==========================================================================
 
     def _construir_ui(self):
         """Crea y posiciona todos los widgets de la ventana principal."""
 
-        principal = ttk.Frame(self, style="Main.TFrame")
+        principal = ttk.Frame(self, style="Main.TFrame") # Contenedor raiz de toda la interfaz.
         principal.pack(fill="both", expand=True)
 
         # Header azul oscuro
@@ -302,7 +307,7 @@ class App(tk.Tk):
         self.entry_n = ttk.Entry(top, width=10)
         self.entry_n.pack(side="left", padx=8)
         self.entry_n.insert(0, "4")
-        ttk.Button(top, text="Generar matriz A y A3",
+        ttk.Button(top, text="Generar matriz A y A3", # Boton que inicia todo el procesamiento.
                    style="Primary.TButton",
                    command=self.generar).pack(side="left", padx=10)
         tk.Label(top, text="(Si n > 20 se muestra vista previa y se guarda en .txt)",
@@ -311,15 +316,12 @@ class App(tk.Tk):
         # Botones secundarios
         bf = ttk.Frame(principal, style="Main.TFrame")
         bf.pack(fill="x", padx=20, pady=(0, 10))
-        ttk.Button(bf, text="Abrir TXT A",       command=lambda: self._abrir("matriz_A.txt")).pack(side="left",  padx=5)
+        ttk.Button(bf, text="Abrir TXT A",       command=lambda: self._abrir("matriz_A.txt")).pack(side="left",  padx=5) # Abre salida de A.
         ttk.Button(bf, text="Abrir TXT A3",      command=lambda: self._abrir("matriz_A3.txt")).pack(side="left", padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A",  command=lambda: self._abrir("arbol_A.json")).pack(side="left",  padx=5)
         ttk.Button(bf, text="Ver Grafico Arbol A",  command=lambda: self._mostrar_grafico_arbol("Grafico Arbol A",  self.arbol_A)).pack(side="left",  padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A3", command=lambda: self._abrir("arbol_A3.json")).pack(side="left", padx=5)
         ttk.Button(bf, text="Ver Grafico Arbol A3", command=lambda: self._mostrar_grafico_arbol("Grafico Arbol A3", self.arbol_A3)).pack(side="left", padx=5)
-        ttk.Button(bf, text="Ver tabla A",       command=lambda: self._mostrar_tabla("Matriz A",  self.A)).pack(side="left",  padx=5)
-        ttk.Button(bf, text="Ver tabla A3",      command=lambda: self._mostrar_tabla("Matriz A3", self.A3)).pack(side="left", padx=5)
-
         # Panel de busqueda
         pf = tk.LabelFrame(principal, text="Busqueda",
                             bg="#f4f6f9", fg="#333333", font=("Segoe UI", 9))
@@ -329,7 +331,7 @@ class App(tk.Tk):
         self.entry_buscado = tk.Entry(pf, width=10, font=("Segoe UI", 9),
                                        bg="white", fg="black", relief="solid", bd=1)
         self.entry_buscado.pack(side="left", padx=5)
-        tk.Button(pf, text="Buscar en matriz y arbol",
+        tk.Button(pf, text="Buscar en matriz y arbol", # Ejecuta la busqueda comparativa.
                   command=self.buscar,
                   font=("Segoe UI", 9), bg="#f5f5f5", fg="#111111",
                   activebackground="#e6e6e6", relief="raised",
@@ -341,7 +343,7 @@ class App(tk.Tk):
 
         izq = ttk.LabelFrame(centro, text="Matrices generadas", style="Card.TLabelframe")
         izq.pack(side="left", fill="both", expand=True, padx=(0, 12))
-        self.notebook = ttk.Notebook(izq)
+        self.notebook = ttk.Notebook(izq)        # Pestañas para alternar entre A y A3.
         self.tab_A    = ttk.Frame(self.notebook)
         self.tab_A3   = ttk.Frame(self.notebook)
         self.notebook.add(self.tab_A,  text="Matriz A")
@@ -352,7 +354,7 @@ class App(tk.Tk):
 
         der = ttk.LabelFrame(centro, text="Resumen y analisis", style="Card.TLabelframe")
         der.pack(side="left", fill="both", expand=False)
-        self.txt_result = tk.Text(der, width=50, height=24, wrap="word",
+        self.txt_result = tk.Text(der, width=50, height=24, wrap="word", # Panel de resumen textual.
                                    font=("Consolas", 10), bg="#ffffff", fg="#222222",
                                    relief="flat", padx=10, pady=10)
         sb_r = ttk.Scrollbar(der, orient="vertical", command=self.txt_result.yview)
@@ -366,7 +368,7 @@ class App(tk.Tk):
         af = ttk.LabelFrame(principal, text="Arbol binario de busqueda (A y A3)",
                              style="Card.TLabelframe")
         af.pack(fill="both", expand=False, padx=20, pady=(0, 10))
-        self.txt_arbol = tk.Text(af, height=10, wrap="none",
+        self.txt_arbol = tk.Text(af, height=10, wrap="none", # Panel para el arbol ASCII.
                                   font=("Consolas", 12), bg="#fbfbfb", fg="#1e1e1e",
                                   relief="flat", padx=10, pady=10)
         sb_ay = ttk.Scrollbar(af, orient="vertical",   command=self.txt_arbol.yview)
@@ -386,13 +388,15 @@ class App(tk.Tk):
                                font=("Segoe UI", 10, "bold"))
         self.status.pack(fill="x", padx=20, pady=(0, 12), ipady=6)
 
-    # ── Metodos auxiliares de widgets ────────────────────────────
+    # ==========================================================================
+    # METODOS AUXILIARES DE WIDGETS
+    # ==========================================================================
 
     def _text_scroll(self, parent):
         """Crea un widget Text con barras de scroll horizontal y vertical."""
-        frame = ttk.Frame(parent)
+        frame = ttk.Frame(parent)                # Contenedor del texto y sus barras.
         frame.pack(fill="both", expand=True)
-        text = tk.Text(frame, wrap="none", font=("Consolas", 11),
+        text = tk.Text(frame, wrap="none", font=("Consolas", 11), # Area de texto monoespaciada.
                        bg="#fbfbfb", fg="#1f1f1f", relief="flat", padx=10, pady=10)
         sby = ttk.Scrollbar(frame, orient="vertical",   command=text.yview)
         sbx = ttk.Scrollbar(frame, orient="horizontal", command=text.xview)
@@ -421,32 +425,14 @@ class App(tk.Tk):
 
     def _abrir(self, nombre_archivo):
         """Abre un archivo de resultados con el programa predeterminado del SO."""
-        ok = self.gestor.abrir_archivo(nombre_archivo)
+        ok = self.gestor.abrir_archivo(nombre_archivo) # Delegacion al gestor de archivos.
         if not ok:
             messagebox.showwarning("Archivo no encontrado",
                                    "Primero genera la matriz para crear el archivo.")
 
-    def _mostrar_tabla(self, titulo, matriz):
-        """Abre la matriz en una ventana emergente como tabla interactiva."""
-        if matriz is None:
-            messagebox.showwarning("Sin datos", "Primero genera la matriz.")
-            return
-        if not TKSHEET_DISPONIBLE:
-            messagebox.showinfo("tksheet no disponible",
-                                "Instala tksheet o abre el archivo .txt.")
-            return
-        ventana = tk.Toplevel(self)
-        ventana.title(titulo)
-        ventana.geometry("900x600")
-        hoja = tksheet.Sheet(ventana, data=matriz)
-        hoja.pack(fill="both", expand=True)
-        hoja.enable_bindings(("single_select", "row_select",
-                               "column_width_resize", "arrowkeys",
-                               "right_click_popup_menu"))
-
     def _mostrar_grafico_arbol(self, titulo, raiz_arbol):
         """Abre la ventana emergente con la visualizacion grafica del arbol."""
-        if raiz_arbol is None:
+        if raiz_arbol is None:                   # Valida que el arbol ya haya sido construido.
             messagebox.showwarning("Sin datos", "Primero genera la matriz para construir el arbol.")
             return
         VisualizadorArbol(self, raiz_arbol, titulo)
@@ -457,10 +443,10 @@ class App(tk.Tk):
         n <= 20: muestra la matriz completa.
         Usa for, if y +=. Sin .join() ni str(lista).
         """
-        n = len(M)
-        resultado = ""
+        n = len(M)                               # Dimension de la matriz.
+        resultado = ""                           # Acumulador del texto a mostrar.
 
-        if n > 20:
+        if n > 20:                               # Para matrices grandes se muestra solo vista previa.
             l = lim if lim < n else n
             for i in range(l):
                 for j in range(l):
@@ -473,7 +459,7 @@ class App(tk.Tk):
             resultado += " de " + str(n) + "x" + str(n) + " )"
             return resultado
 
-        for i in range(n):
+        for i in range(n):                       # Para matrices pequeñas se muestra completa.
             for j in range(n):
                 resultado += f"{M[i][j]:6}"
                 if j < n - 1:
@@ -486,7 +472,7 @@ class App(tk.Tk):
         """Convierte el arbol BST (NodoJSON) a diccionario Python de forma recursiva.
         NodoJSON tiene: nodo.dato = {"valor": num, "cantidad": freq}.
         """
-        if nodo is None:
+        if nodo is None:                         # Caso base para ramas vacias.
             return None
         return {
             "valor":     nodo.dato["valor"],
@@ -499,10 +485,10 @@ class App(tk.Tk):
         """Quita espacios al inicio y al final del string sin usar .strip().
         Avanza con while desde los dos extremos.
         """
-        i = 0
+        i = 0                                    # Avanza desde el inicio.
         while i < len(texto) and texto[i] == " ":
             i += 1
-        j = len(texto) - 1
+        j = len(texto) - 1                       # Retrocede desde el final.
         while j >= 0 and texto[j] == " ":
             j -= 1
         if i > j:
@@ -513,10 +499,10 @@ class App(tk.Tk):
         """Verifica si un string es un numero entero valido sin int() previo.
         Recorre caracter a caracter comparando con '0' y '9'.
         """
-        if len(texto) == 0:
+        if len(texto) == 0:                      # Cadena vacia no es numero.
             return False
         inicio = 0
-        if texto[0] == "-":
+        if texto[0] == "-":                      # Permite signo negativo antes de validar digitos.
             inicio = 1
         if inicio == len(texto):
             return False
@@ -527,75 +513,77 @@ class App(tk.Tk):
             i += 1
         return True
 
-    # ── Accion: GENERAR ─────────────────────────────────────────
+    # ==========================================================================
+    # ACCION PRINCIPAL: GENERAR MATRICES, ANALISIS Y ARBOLES
+    # ==========================================================================
 
     def generar(self):
         """Genera A, calcula A3, analiza, construye arboles BST y muestra todo."""
 
         # Validar n
-        texto_n = self._limpiar_texto(self.entry_n.get())
-        if not self._es_entero(texto_n):
+        texto_n = self._limpiar_texto(self.entry_n.get()) # Lee y limpia el valor escrito por el usuario.
+        if not self._es_entero(texto_n):          # Valida que la entrada sea numerica.
             messagebox.showerror("Error", "Ingrese un valor entero para n.")
             return
-        n = int(texto_n)
+        n = int(texto_n)                          # Convierte el texto validado a entero.
 
-        if n < 4:
+        if n < 4:                                 # Restriccion minima del enunciado.
             messagebox.showerror("Error", "n debe ser mayor o igual a 4.")
             return
-        if n > MAX_N:
+        if n > MAX_N:                             # Limite para evitar consumo excesivo.
             messagebox.showerror("Error",
                 "n supera el limite de " + str(MAX_N) +
                 ". El calculo de A3 (O(n3)) consumiria demasiada RAM.")
             return
-        if n > 20:
+        if n > 20:                                # Advierte que se mostrara una vista previa.
             ok = messagebox.askyesno("Advertencia",
                 "n es grande. Se mostrara vista previa y se guardaran archivos .txt. Continuar?")
             if not ok:
                 return
 
-        self.status.config(text="Estado: generando matriz y calculando A3...")
+        self.status.config(text="Estado: generando matriz y calculando A3...") # Actualiza barra de estado.
         self.update_idletasks()
 
         try:
             # Paso 1: crear A y calcular A3
-            iniciar_medicion_memoria()
-            self.A = crear_matriz(n)
+            iniciar_medicion_memoria()            # Comienza medicion de memoria.
+            self.A = crear_matriz(n)              # Genera la matriz A con el backend.
 
-            if n > 100:
+            if n > 100:                           # Ruta para matrices muy grandes.
                 self.gestor.guardar_matriz("matriz_A.txt", self.A, "Matriz A")
                 self.status.config(text="Estado: guardando A3 fila por fila...")
                 self.update_idletasks()
                 ruta_a3 = self.gestor.CARPETA + "\\" + "matriz_A3.txt"
-                self.A3 = guardar_A3_directo_txt(self.A, ruta_a3)
+                self.A3 = guardar_A3_directo_txt(self.A, ruta_a3) # Calcula y guarda A3.
             else:
-                self.A3 = calcular_A3(self.A)
+                self.A3 = calcular_A3(self.A)      # Calcula A3 en memoria.
                 self.gestor.guardar_matriz("matriz_A.txt",  self.A,  "Matriz A")
                 self.gestor.guardar_matriz("matriz_A3.txt", self.A3, "Matriz A3")
 
             # Paso 2: analizar
-            analisis_A  = analizar_matriz(self.A)
-            analisis_A3 = analizar_matriz(self.A3)
+            analisis_A  = analizar_matriz(self.A)  # Clasifica los valores de A.
+            analisis_A3 = analizar_matriz(self.A3) # Clasifica los valores de A3.
 
             # Paso 3: repeticiones
-            rep_A  = contar_repeticiones(self.A)
-            rep_A3 = contar_repeticiones(self.A3)
+            rep_A  = contar_repeticiones(self.A)   # Frecuencias por valor en A.
+            rep_A3 = contar_repeticiones(self.A3)  # Frecuencias por valor en A3.
 
             # Paso 4: construir BST
-            lista_A  = frecuencias_a_json_ordenado(rep_A)
-            self.arbol_A  = construir_arbol_json_equilibrado(lista_A,  0, len(lista_A)  - 1)
+            lista_A  = frecuencias_a_json_ordenado(rep_A) # Convierte frecuencias a lista ordenada.
+            self.arbol_A  = construir_arbol_json_equilibrado(lista_A,  0, len(lista_A)  - 1) # Arbol de A.
             lista_A3 = frecuencias_a_json_ordenado(rep_A3)
-            self.arbol_A3 = construir_arbol_json_equilibrado(lista_A3, 0, len(lista_A3) - 1)
+            self.arbol_A3 = construir_arbol_json_equilibrado(lista_A3, 0, len(lista_A3) - 1) # Arbol de A3.
 
             # Paso 5: vectores ordenados
-            vec_A   = matriz_a_vector(self.A)
-            vec_A3  = matriz_a_vector(self.A3)
-            va_asc  = ordenar_ascendente(vec_A)
+            vec_A   = matriz_a_vector(self.A)      # Aplana A para ordenar.
+            vec_A3  = matriz_a_vector(self.A3)     # Aplana A3 para ordenar.
+            va_asc  = ordenar_ascendente(vec_A)    # Orden ascendente propio.
             va3_asc = ordenar_ascendente(vec_A3)
-            va_desc = invertir_vector(va_asc)
+            va_desc = invertir_vector(va_asc)      # Orden descendente a partir del ascendente.
             va3_desc= invertir_vector(va3_asc)
 
             # Paso 6: mostrar matrices
-            self._set_text(self.text_A,  self._mat_to_str(self.A))
+            self._set_text(self.text_A,  self._mat_to_str(self.A))  # Muestra matriz A.
             self._set_text(self.text_A3, self._mat_to_str(self.A3))
 
             # Paso 7: arbol ASCII
@@ -611,20 +599,35 @@ class App(tk.Tk):
                            "ARBOL A:\n" + ascii_A + "\n\nARBOL A3:\n" + ascii_A3)
 
             # Paso 8: memoria
-            mem_actual, mem_pico = obtener_memoria_actual_y_pico()
-            detener_medicion_memoria()
-            estimacion = estimar_memoria_matriz(n)
+            mem_actual, mem_pico = obtener_memoria_actual_y_pico() # Lee memoria medida.
+            detener_medicion_memoria()             # Detiene tracemalloc.
+            estimacion = estimar_memoria_matriz(n) # Estimacion teorica.
+            validacion_A = {
+                "elementos_matriz": n * n,         # Total de celdas de A.
+                "elementos_arbol": contar_elementos_representados_arbol(self.arbol_A),
+                "valores_unicos": len(lista_A),
+                "nodos_arbol": contar_nodos_arbol_json(self.arbol_A),
+                "altura": altura_arbol_json(self.arbol_A)
+            }
+            validacion_A3 = {
+                "elementos_matriz": n * n,
+                "elementos_arbol": contar_elementos_representados_arbol(self.arbol_A3),
+                "valores_unicos": len(lista_A3),
+                "nodos_arbol": contar_nodos_arbol_json(self.arbol_A3),
+                "altura": altura_arbol_json(self.arbol_A3)
+            }
 
             # Paso 9: resumen en el panel
             salida = self.constructor.construir_salida(
                 analisis_A, analisis_A3, rep_A, rep_A3,
                 va_asc, va_desc, va3_asc, va3_desc,
-                mem_actual, mem_pico, estimacion
+                mem_actual, mem_pico, estimacion,
+                validacion_A, validacion_A3
             )
             self._set_text(self.txt_result, salida)
 
             # Paso 10: guardar JSON del arbol manualmente
-            self.gestor.guardar_arbol_json("arbol_A.json",  self._arbol_a_dict(self.arbol_A),  "ArbolA")
+            self.gestor.guardar_arbol_json("arbol_A.json",  self._arbol_a_dict(self.arbol_A),  "ArbolA") # JSON de A.
             self.gestor.guardar_arbol_json("arbol_A3.json", self._arbol_a_dict(self.arbol_A3), "ArbolA3")
 
             if n > 20:
@@ -632,38 +635,42 @@ class App(tk.Tk):
             else:
                 self.status.config(text="Estado: generado correctamente. Ya puedes buscar un numero.")
 
-        except Exception as e:
+        except Exception as e:                     # Captura errores para mostrarlos sin cerrar la app.
             messagebox.showerror("Error", "Ocurrio un problema al generar:\n" + str(e))
             self.status.config(text="Estado: error al generar.")
 
-    # ── Accion: BUSCAR ──────────────────────────────────────────
+    # ==========================================================================
+    # ACCION SECUNDARIA: BUSQUEDA COMPARATIVA
+    # ==========================================================================
 
     def buscar(self):
         """Busca un numero en la matriz y en el arbol BST, mide tiempos y compara."""
-        if self.A is None or self.A3 is None or self.arbol_A is None or self.arbol_A3 is None:
+        if self.A is None or self.A3 is None or self.arbol_A is None or self.arbol_A3 is None: # Requiere datos previos.
             messagebox.showwarning("Aviso", "Primero genera la matriz A y A3.")
             return
 
-        texto_b = self._limpiar_texto(self.entry_buscado.get())
-        if not self._es_entero(texto_b):
+        texto_b = self._limpiar_texto(self.entry_buscado.get()) # Lee el numero a buscar.
+        if not self._es_entero(texto_b):         # Valida entrada numerica.
             messagebox.showerror("Error", "Ingrese un numero entero para buscar.")
             return
-        buscado = int(texto_b)
+        buscado = int(texto_b)                   # Numero entero que se buscara.
 
         self.status.config(text="Estado: buscando...")
         self.update_idletasks()
 
+        repeticiones = 1000                      # Cantidad de ejecuciones para promediar tiempos.
+
         # Busquedas en A
-        res_mat_A,  t_mat_A  = medir_tiempo(buscar_y_contar_en_matriz, self.A,        buscado)
+        res_mat_A,  t_mat_A  = medir_tiempo_promedio(buscar_y_contar_en_matriz, self.A,        buscado, repeticiones) # Matriz A.
         enc_mat_A, cant_mat_A = res_mat_A
-        res_arb_A,  t_arb_A  = medir_tiempo(buscar_en_arbol_json,      self.arbol_A,  buscado)
+        res_arb_A,  t_arb_A  = medir_tiempo_promedio(buscar_en_arbol_json,      self.arbol_A,  buscado, repeticiones) # Arbol A.
 
         # Busquedas en A3
-        res_mat_A3, t_mat_A3  = medir_tiempo(buscar_y_contar_en_matriz, self.A3,       buscado)
+        res_mat_A3, t_mat_A3  = medir_tiempo_promedio(buscar_y_contar_en_matriz, self.A3,       buscado, repeticiones)
         enc_mat_A3, cant_mat_A3 = res_mat_A3
-        res_arb_A3, t_arb_A3  = medir_tiempo(buscar_en_arbol_json,     self.arbol_A3,  buscado)
+        res_arb_A3, t_arb_A3  = medir_tiempo_promedio(buscar_en_arbol_json,     self.arbol_A3,  buscado, repeticiones)
 
-        if res_arb_A is not None:
+        if res_arb_A is not None:                # Si el arbol encontro el valor, lee su frecuencia.
             cant_arb_A = res_arb_A["cantidad"]
         else:
             cant_arb_A = 0
@@ -705,16 +712,23 @@ class App(tk.Tk):
             rapido_A3 = "empate"
 
         # Construye el mensaje de resultado con +=
-        msg = "\n\nBUSQUEDA: " + str(buscado) + "\n"
+        msg = "\n\nBUSQUEDA: " + str(buscado) + "\n" # Bloque que se agrega al resumen.
         msg += "-------------------\n"
+        msg += "Repeticiones usadas para promedio: " + str(repeticiones) + "\n\n"
         msg += "Matriz A:\n"
-        msg += "  En matriz   : " + txt_mat_A  + ", cantidad: " + str(cant_mat_A)  + ", tiempo: " + str(t_mat_A)  + " ns\n"
-        msg += "  En arbol BST: " + txt_arb_A  + ", cantidad: " + str(cant_arb_A)  + ", tiempo: " + str(t_arb_A)  + " ns\n"
+        msg += "  En matriz   : " + txt_mat_A  + ", cantidad: " + str(cant_mat_A)  + ", tiempo promedio: " + str(t_mat_A)  + " ns\n"
+        msg += "  En arbol BST: " + txt_arb_A  + ", cantidad: " + str(cant_arb_A)  + ", tiempo promedio: " + str(t_arb_A)  + " ns\n"
         msg += "  -> Mas rapido: " + rapido_A  + "\n\n"
         msg += "Matriz A3:\n"
-        msg += "  En matriz   : " + txt_mat_A3 + ", cantidad: " + str(cant_mat_A3) + ", tiempo: " + str(t_mat_A3) + " ns\n"
-        msg += "  En arbol BST: " + txt_arb_A3 + ", cantidad: " + str(cant_arb_A3) + ", tiempo: " + str(t_arb_A3) + " ns\n"
-        msg += "  -> Mas rapido: " + rapido_A3 + "\n"
+        msg += "  En matriz   : " + txt_mat_A3 + ", cantidad: " + str(cant_mat_A3) + ", tiempo promedio: " + str(t_mat_A3) + " ns\n"
+        msg += "  En arbol BST: " + txt_arb_A3 + ", cantidad: " + str(cant_arb_A3) + ", tiempo promedio: " + str(t_arb_A3) + " ns\n"
+        msg += "  -> Mas rapido: " + rapido_A3 + "\n\n"
+        msg += "ANALISIS AUTOMATICO\n"
+        msg += "-------------------\n"
+        msg += "La busqueda secuencial en matriz tiene costo O(n2), porque puede recorrer todas las posiciones. "
+        msg += "La busqueda en el arbol equilibrado depende de la altura del arbol y, al estar construido con valores unicos y frecuencias, "
+        msg += "tiene costo aproximado O(log u), donde u es la cantidad de valores unicos. "
+        msg += "Para matrices pequenas, los tiempos pueden variar por la sobrecarga del sistema, por eso se usa un promedio de varias ejecuciones.\n"
 
         self._add_text(self.txt_result, msg)
         self.status.config(text="Estado: busqueda completada.")

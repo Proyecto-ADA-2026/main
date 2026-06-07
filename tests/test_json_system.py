@@ -9,7 +9,8 @@ from logica_arbol import (
     frecuencias_a_json_ordenado, construir_arbol_json_equilibrado,
     buscar_en_arbol_json, contar_nodos_arbol_json, altura_arbol_json,
     recorrido_inorden_json, buscar_y_contar_en_matriz, arbol_a_ascii,
-    exportar_arbol_dot, medir_tiempo, analizar_matriz,
+    exportar_arbol_dot, medir_tiempo, medir_tiempo_promedio,
+    contar_elementos_representados_arbol, analizar_matriz,
     matriz_a_vector, ordenar_ascendente
 )
 
@@ -49,11 +50,15 @@ print(f"  Árbol A³ construido con raíz: {tree_A3.dato}")
 print("\n✓ Test 4: Propiedades del árbol")
 nodes_A = contar_nodos_arbol_json(tree_A)
 height_A = altura_arbol_json(tree_A)
+elementos_A = contar_elementos_representados_arbol(tree_A)
 print(f"  Árbol A: {nodes_A} nodos, altura {height_A}")
+print(f"  Elementos representados A: {elementos_A}")
 
 nodes_A3 = contar_nodos_arbol_json(tree_A3)
 height_A3 = altura_arbol_json(tree_A3)
+elementos_A3 = contar_elementos_representados_arbol(tree_A3)
 print(f"  Árbol A³: {nodes_A3} nodos, altura {height_A3}")
+print(f"  Elementos representados A³: {elementos_A3}")
 
 # Test 5: Búsqueda
 print("\n✓ Test 5: Búsqueda en árbol JSON")
@@ -104,8 +109,10 @@ except Exception as e:
 print("\n✓ Test 10: Medición de tiempos")
 resultado_m, tiempo_m = medir_tiempo(buscar_y_contar_en_matriz, A, test_value)
 resultado_a, tiempo_a = medir_tiempo(buscar_en_arbol_json, tree_A, test_value)
+resultado_prom, tiempo_prom = medir_tiempo_promedio(buscar_en_arbol_json, tree_A, test_value, 10)
 print(f"  Búsqueda en matriz A: {tiempo_m} ns")
 print(f"  Búsqueda en árbol A: {tiempo_a} ns")
+print(f"  Búsqueda promedio árbol A: {tiempo_prom} ns")
 factor = tiempo_m // tiempo_a if tiempo_a > 0 else 0
 if factor > 0:
     print(f"  Árbol es {factor}x más rápido")
