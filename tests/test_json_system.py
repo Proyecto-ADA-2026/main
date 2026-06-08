@@ -9,7 +9,7 @@ from proyecto_final import (
     frecuencias_a_json_ordenado, construir_arbol_json_equilibrado,
     buscar_en_arbol_json, contar_nodos_arbol_json, altura_arbol_json,
     recorrido_inorden_json, buscar_y_contar_en_matriz, arbol_a_ascii,
-    exportar_arbol_dot, medir_tiempo, medir_tiempo_promedio,
+    medir_tiempo, medir_tiempo_promedio,
     contar_elementos_representados_arbol, analizar_matriz,
     matriz_a_vector, ordenar_ascendente
 )
@@ -79,20 +79,12 @@ print("\n✓ Test 7: Recorrido inorden")
 inorden = recorrido_inorden_json(tree_A)
 print(f"  Inorden A: {inorden}")
 
-# Test 8: Exportar DOT
-print("\n✓ Test 8: Exportar DOT")
-try:
-    dot_content = exportar_arbol_dot(tree_A)
-    if "digraph" in dot_content:
-        print(f"  Archivo DOT generado correctamente ({len(dot_content)} caracteres)")
-        lines = dot_content.split('\n')
-        print(f"  Primeras líneas:")
-        for line in lines[:3]:
-            print(f"    {line}")
-    else:
-        print(f"  Advertencia: formato DOT no tiene 'digraph'")
-except Exception as e:
-    print(f"  Error en exportar_arbol_dot: {e}")
+# Test 8: Validar estructura JSON del arbol
+print("\n✓ Test 8: Validar estructura JSON del arbol")
+if isinstance(tree_A.dato, dict) and "valor" in tree_A.dato and "cantidad" in tree_A.dato:
+    print(f"  Nodo raiz JSON valido: {tree_A.dato}")
+else:
+    raise AssertionError("El arbol no conserva la estructura JSON esperada")
 
 # Test 9: Visualización ASCII
 print("\n✓ Test 9: Visualización ASCII")

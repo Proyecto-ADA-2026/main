@@ -319,9 +319,9 @@ class App(tk.Tk):
         ttk.Button(bf, text="Abrir TXT A",       command=lambda: self._abrir("matriz_A.txt")).pack(side="left",  padx=5) # Abre salida de A.
         ttk.Button(bf, text="Abrir TXT A3",      command=lambda: self._abrir("matriz_A3.txt")).pack(side="left", padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A",  command=lambda: self._abrir("arbol_A.json")).pack(side="left",  padx=5)
-        ttk.Button(bf, text="Ver Grafico Arbol A",  command=lambda: self._mostrar_grafico_arbol("Grafico Arbol A",  self.arbol_A)).pack(side="left",  padx=5)
+        ttk.Button(bf, text="Ver Arbol A",  command=lambda: self._mostrar_grafico_arbol("Visualizacion Arbol A",  self.arbol_A)).pack(side="left",  padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A3", command=lambda: self._abrir("arbol_A3.json")).pack(side="left", padx=5)
-        ttk.Button(bf, text="Ver Grafico Arbol A3", command=lambda: self._mostrar_grafico_arbol("Grafico Arbol A3", self.arbol_A3)).pack(side="left", padx=5)
+        ttk.Button(bf, text="Ver Arbol A3", command=lambda: self._mostrar_grafico_arbol("Visualizacion Arbol A3", self.arbol_A3)).pack(side="left", padx=5)
         # Panel de busqueda
         pf = tk.LabelFrame(principal, text="Busqueda",
                             bg="#f4f6f9", fg="#333333", font=("Segoe UI", 9))

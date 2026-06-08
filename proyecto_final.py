@@ -500,7 +500,7 @@ def medir_tiempo_promedio(funcion, estructura, buscado, repeticiones=1000):
 
 
 # ==============================================================================
-# DIBUJO DEL ARBOL EN TEXTO (REPRESENTACION ASCII Y DOT DE GRAPHVIZ)
+# DIBUJO DEL ARBOL EN TEXTO (REPRESENTACION ASCII)
 # ==============================================================================
 
 
@@ -651,37 +651,3 @@ def arbol_a_ascii(raiz):
         lineas_centradas = lineas_centradas + [linea_centrada]
     return unir_con_delimitador(lineas_centradas, "\n") # Une las lineas del dibujo.
 
-
-def exportar_arbol_dot(raiz, nombre_grafo="Arbol"):
-    """Exporta el arbol a formato DOT de Graphviz para renderizar grafos, sin usar .append() ni .join()."""
-    lineas = []                                  # Acumulador de lineas DOT.
-    lineas = lineas + ["digraph " + str(nombre_grafo) + " {"] # Encabezado del grafo.
-    lineas = lineas + ["    node [shape=circle];"] # Configuracion visual de nodos.
-    contador = [0]                               # Contador mutable para asignar ids unicos.
-
-    def recorrer(nodo):
-        """Recorre el arbol y escribe nodos/enlaces en formato DOT."""
-        nonlocal lineas
-        if nodo is None:                         # Caso base: no hay nodo para exportar.
-            return None
-        id_actual = contador[0]                  # Id unico del nodo actual.
-        contador[0] += 1                         # Prepara el id del siguiente nodo.
-        if hasattr(nodo, 'dato'):                # NodoJSON almacena dato como diccionario.
-            if isinstance(nodo.dato, dict):
-                label = str(nodo.dato['valor']) + " | cant: " + str(nodo.dato['cantidad'])
-            else:
-                label = str(nodo.dato[0]) + " | cant: " + str(nodo.dato[1])
-        else:
-            label = str(nodo.valor)
-        lineas = lineas + ["    nodo" + str(id_actual) + " [label=\"" + label + "\"];"] # Declara el nodo.
-        id_izq = recorrer(nodo.izquierda)        # Exporta recursivamente el hijo izquierdo.
-        if id_izq is not None:                   # Si existe, crea la arista izquierda.
-            lineas = lineas + ["    nodo" + str(id_actual) + " -> nodo" + str(id_izq) + ";"]
-        id_der = recorrer(nodo.derecha)          # Exporta recursivamente el hijo derecho.
-        if id_der is not None:                   # Si existe, crea la arista derecha.
-            lineas = lineas + ["    nodo" + str(id_actual) + " -> nodo" + str(id_der) + ";"]
-        return id_actual
-
-    recorrer(raiz)                               # Inicia el recorrido desde la raiz.
-    lineas = lineas + ["}"]                      # Cierra el grafo DOT.
-    return unir_con_delimitador(lineas, "\n")    # Retorna el texto DOT completo.

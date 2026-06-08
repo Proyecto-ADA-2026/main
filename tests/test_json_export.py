@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Script de prueba para validar que los árboles se exportan como JSON correctamente
-sin Graphviz.
-"""
+"""Script de prueba para validar que los arboles se exportan como JSON correctamente."""
 
 import os
 import sys
@@ -73,14 +70,11 @@ def test_json_export():
     print("   ✓ resultados/arbol_A.json guardado")
     print("   ✓ resultados/arbol_A3.json guardado")
     
-    print(f"\n9. Verificando que NO se generaron archivos .dot o .png...")
-    dot_exists = os.path.exists(str(ROOT / "resultados" / "arbol_A.dot"))
-    png_exists = os.path.exists(str(ROOT / "resultados" / "arbol_A.png"))
-    if not dot_exists and not png_exists:
-        print("   ✓ Correcto: No se generaron .dot ni .png")
-    else:
-        print("   ✗ ERROR: Se encontraron archivos .dot o .png")
-        return False
+    print(f"\n9. Verificando que se generaron los archivos JSON esperados...")
+    json_a_exists = os.path.exists(str(ROOT / "resultados" / "arbol_A.json"))
+    json_a3_exists = os.path.exists(str(ROOT / "resultados" / "arbol_A3.json"))
+    assert json_a_exists and json_a3_exists, "falta algun archivo JSON esperado"
+    print("   ✓ Correcto: se generaron arbol_A.json y arbol_A3.json")
     
     print(f"\n10. Mostrando fragmentos de JSON generado...")
     print("\n   --- arbol_A.json (primeros 200 caracteres) ---")
@@ -91,8 +85,7 @@ def test_json_export():
     print("\n" + "=" * 60)
     print("✓ TODAS LAS PRUEBAS PASARON CORRECTAMENTE")
     print("=" * 60)
-    return True
 
 if __name__ == "__main__":
-    success = test_json_export()
-    sys.exit(0 if success else 1)
+    test_json_export()
+    sys.exit(0)
