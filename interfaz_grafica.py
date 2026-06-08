@@ -16,7 +16,7 @@ from gestor_txt import GestorArchivos, ConstructorTexto # Servicios para archivo
 
 MAX_N = 50                           # Tamano maximo de n (A3 cuesta O(n3) en tiempo y O(n2) en memoria)
 
-from logica_arbol import (           # Importa solo funciones algoritmicas usadas por la interfaz.
+from proyecto_final import (         # Importa solo funciones algoritmicas usadas por la interfaz.
     crear_matriz,                     # Genera matriz n*n con numeros aleatorios 0-9
     calcular_A3,                      # Calcula A3 = A*A*A con multiplicacion propia O(n3)
     guardar_A3_directo_txt,           # Calcula y guarda A3 fila por fila para matrices grandes

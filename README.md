@@ -20,13 +20,20 @@ El proyecto está separado en tres partes principales:
 
 ```text
 interfaz_grafica.py  -> Frontend / interfaz gráfica
-logica_arbol.py      -> Backend / lógica algorítmica
+proyecto_final.py    -> Backend principal / lógica algorítmica
 gestor_txt.py        -> Generación de texto y guardado de archivos
+logica_arbol.py      -> Compatibilidad con imports antiguos
 README.md            -> Documentación del proyecto
 tests/               -> Pruebas automáticas
 ```
 
-Contiene la interfaz gráfica desarrollada con Tkinter.
+interfaz_grafica.py
+
+Contiene la interfaz gráfica desarrollada con Tkinter. El proyecto se ejecuta con:
+
+```bash
+python interfaz_grafica.py
+```
 
 Desde esta interfaz se puede:
 
@@ -38,7 +45,7 @@ Buscar un número en matriz y árbol.
 Abrir archivos .txt.
 Abrir archivos .json.
 
-logica_arbol.py
+proyecto_final.py
 
 Contiene toda la lógica algorítmica del proyecto:
 
@@ -58,6 +65,10 @@ Exportación del árbol en formato DOT.
 gestor_txt.py
 
 Contiene los helpers para generar texto legible y guardar archivos en la carpeta resultados.
+
+logica_arbol.py
+
+Se conserva como archivo auxiliar de compatibilidad para imports antiguos. No contiene la lógica duplicada; redirige al backend principal `proyecto_final.py`.
 
 Requisitos del taller
 1. Matriz A y cálculo de A³
@@ -133,7 +144,7 @@ La comparación entre nodos se realiza usando únicamente el valor numérico alm
 ## Restricciones del sistema
 
 - `n` debe ser mayor o igual a 4.
-- `n` tiene un máximo definido en el programa (por ejemplo `MAX_N = 150`).
+- `n` tiene un máximo definido en el programa: `MAX_N = 50`.
 - El límite existe porque calcular `A³` requiere dos multiplicaciones de matrices.
 - La multiplicación de matrices tiene costo `O(n³)`.
 - La matriz `A`, `A²` y `A³` pueden consumir bastante memoria.
@@ -255,7 +266,7 @@ El archivo DOT es texto, por eso si se abre directamente se verá algo como:
 digraph ArbolA { ... }
 ```
 
-Para verlo como imagen se necesita Graphviz. Graphviz se usa únicamente para la parte gráfica/visual, no para construir el árbol ni para resolver algoritmos. La lógica del árbol sigue implementada manualmente en `logica_arbol.py`.
+Para verlo como imagen se necesita Graphviz. Graphviz se usa únicamente para la parte gráfica/visual, no para construir el árbol ni para resolver algoritmos. La lógica del árbol sigue implementada manualmente en `proyecto_final.py`.
 
 Graphviz permite convertir:
 
@@ -457,7 +468,7 @@ Recomendación para sustentación
 
 Se puede explicar así:
 
-El proyecto se separó en dos capas. `logica_arbol.py` contiene la lógica algorítmica del taller, `gestor_txt.py` maneja la generación de texto y guardado de archivos, y `interfaz_grafica.py` contiene la interfaz gráfica. El sistema genera la matriz A, calcula A³, analiza ambas matrices, ordena sus elementos, cuenta repeticiones y construye árboles binarios equilibrados para comparar tiempos de búsqueda.
+El proyecto se separó en tres partes claras. `proyecto_final.py` contiene la lógica algorítmica del taller, `gestor_txt.py` maneja la generación de texto y guardado de archivos, e `interfaz_grafica.py` contiene la interfaz gráfica. `logica_arbol.py` solo queda como compatibilidad para imports anteriores. El sistema genera la matriz A, calcula A³, analiza ambas matrices, ordena sus elementos, cuenta repeticiones y construye árboles binarios equilibrados para comparar tiempos de búsqueda.
 
 También se puede aclarar:
 

@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from logica_arbol import (
+from proyecto_final import (
     crear_matriz,
     calcular_A3,
     analizar_matriz,

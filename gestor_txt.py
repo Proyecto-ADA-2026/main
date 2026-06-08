@@ -4,7 +4,7 @@
 
 import os # Permite crear carpetas y abrir archivos con el programa predeterminado.
 
-from logica_arbol import ordenar_ascendente
+from proyecto_final import ordenar_ascendente
 
 
 # ==============================================================================
