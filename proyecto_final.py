@@ -11,7 +11,6 @@
 
 import random      # Permite generar los valores aleatorios de la matriz.
 import time        # Permite medir tiempos de busqueda en nanosegundos.
-import tracemalloc # Permite medir memoria actual y pico durante la ejecucion.
 
 
 # ==============================================================================
@@ -133,32 +132,6 @@ def calcular_A3(A):
     A2 = multiplicar_matrices(A, A)             # Primer producto: A2 = A * A.
     A3 = multiplicar_matrices(A2, A)            # Segundo producto: A3 = A2 * A.
     return A3                                   # Retorna la matriz elevada al cubo.
-
-
-# ==============================================================================
-# FUNCIONES DE MEMORIA
-# ==============================================================================
-
-
-def estimar_memoria_matriz(n):
-    """Realiza una estimacion teorica del tamaño en bytes que ocupa la matriz A en memoria."""
-    return n * n * 28                           # Estimacion simple: n*n enteros de 28 bytes.
-
-
-def iniciar_medicion_memoria():
-    """Inicia el rastreo de uso de memoria utilizando el modulo tracemalloc."""
-    tracemalloc.start()                         # Activa el rastreo de asignaciones de memoria.
-
-
-def obtener_memoria_actual_y_pico():
-    """Retorna el uso de memoria RAM actual y el pico maximo alcanzado durante el rastreo."""
-    actual, pico = tracemalloc.get_traced_memory() # Lee memoria actual y maxima registrada.
-    return actual, pico                         # Devuelve ambos valores en bytes.
-
-
-def detener_medicion_memoria():
-    """Detiene el rastreador de memoria de tracemalloc y libera recursos."""
-    tracemalloc.stop()                          # Finaliza la medicion de memoria.
 
 
 # ==============================================================================

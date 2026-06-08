@@ -20,6 +20,7 @@ El sistema permite generar una matriz `n x n` con números aleatorios entre `0` 
 proyecto_final.py    -> Backend principal / lógica algorítmica
 interfaz_grafica.py  -> Frontend / interfaz gráfica
 gestor_txt.py        -> Generación de texto y guardado de archivos
+medicion_memoria.py  -> Estimación detallada y medición real de memoria
 logica_arbol.py      -> Compatibilidad con imports antiguos
 README.md            -> Documentación del proyecto
 tests/               -> Pruebas automáticas
@@ -68,6 +69,15 @@ Este módulo guarda:
 
 - matrices en archivos `.txt`,
 - árboles en archivos `.json`.
+
+### `medicion_memoria.py`
+
+Contiene las funciones de medición y estimación de memoria:
+
+- estimación profunda por estructura con `sys.getsizeof`,
+- conversión de bytes a KB y MB,
+- reporte detallado de memoria para la interfaz,
+- medición real de memoria actual y pico con `tracemalloc`.
 
 ### `logica_arbol.py`
 
@@ -192,7 +202,12 @@ Al quedar equilibrado, la búsqueda depende de la altura del árbol y se acerca 
 
 ## Análisis de memoria
 
-La memoria depende principalmente de:
+La memoria se presenta con dos mediciones:
+
+- una estimación detallada por estructura,
+- una medición real del programa con `tracemalloc`.
+
+La función anterior solo estimaba la matriz `A`. Para un análisis más completo, se implementó una medición que considera las principales estructuras generadas durante la ejecución:
 
 - la matriz `A`,
 - la matriz `A²` durante el cálculo,
@@ -200,6 +215,8 @@ La memoria depende principalmente de:
 - los vectores generados,
 - los diccionarios JSON de frecuencia,
 - los nodos del árbol.
+
+La medición detallada está separada en `medicion_memoria.py` para mantener el backend algorítmico enfocado en matrices, búsquedas, ordenamientos y árboles.
 
 El árbol de frecuencias usa menos nodos que un árbol con todos los elementos repetidos, porque si un número aparece muchas veces solo se crea un nodo y se almacena su cantidad.
 

@@ -18,7 +18,7 @@ MAX_N = 50                           # Tamano maximo de n (A3 cuesta O(n3) en ti
 
 from proyecto_final import (         # Importa solo funciones algoritmicas usadas por la interfaz.
     crear_matriz,                     # Genera matriz n*n con numeros aleatorios 0-9
-    calcular_A3,                      # Calcula A3 = A*A*A con multiplicacion propia O(n3)
+    multiplicar_matrices,             # Multiplica matrices cuadradas para calcular A2 y A3
     guardar_A3_directo_txt,           # Calcula y guarda A3 fila por fila para matrices grandes
     analizar_matriz,                  # Clasifica cada elemento: par, impar, primo, perfecto, cuadrado
     contar_repeticiones,              # Cuenta cuantas veces aparece cada valor en la matriz
@@ -31,14 +31,17 @@ from proyecto_final import (         # Importa solo funciones algoritmicas usada
     buscar_en_arbol_json,             # Busqueda binaria O(log n) en el arbol BST
     medir_tiempo_promedio,            # Mide promedio de nanosegundos que tarda una funcion
     arbol_a_ascii,                    # Convierte el arbol a dibujo ASCII con ramas / y \
-    iniciar_medicion_memoria,         # Inicia tracemalloc para medir RAM usada
-    obtener_memoria_actual_y_pico,    # Lee uso actual y pico de RAM desde tracemalloc
-    detener_medicion_memoria,         # Detiene tracemalloc y libera sus recursos
-    estimar_memoria_matriz,           # Estimacion teorica de bytes que ocupa la matriz
     contar_nodos_arbol_json,          # Cuenta todos los nodos del arbol recursivamente
     altura_arbol_json,                # Calcula la altura (niveles) del arbol
     recorrido_inorden_json,           # Recorre el arbol en inorden (menor a mayor)
     contar_elementos_representados_arbol, # Suma las frecuencias guardadas en el arbol
+)
+
+from medicion_memoria import (        # Utilidades separadas para estimacion y medicion de memoria.
+    iniciar_medicion_memoria,
+    obtener_memoria_actual_y_pico,
+    detener_medicion_memoria,
+    estimar_memoria_estructuras,
 )
 
 
@@ -549,6 +552,7 @@ class App(tk.Tk):
             iniciar_medicion_memoria()            # Comienza medicion de memoria.
             self.A = crear_matriz(n)              # Genera la matriz A con el backend.
 
+            A2 = None                             # Se conserva para el reporte detallado de memoria.
             if n > 100:                           # Ruta para matrices muy grandes.
                 self.gestor.guardar_matriz("matriz_A.txt", self.A, "Matriz A")
                 self.status.config(text="Estado: guardando A3 fila por fila...")
@@ -556,7 +560,8 @@ class App(tk.Tk):
                 ruta_a3 = self.gestor.CARPETA + "\\" + "matriz_A3.txt"
                 self.A3 = guardar_A3_directo_txt(self.A, ruta_a3) # Calcula y guarda A3.
             else:
-                self.A3 = calcular_A3(self.A)      # Calcula A3 en memoria.
+                A2 = multiplicar_matrices(self.A, self.A) # Calcula A2 para medirla y construir A3.
+                self.A3 = multiplicar_matrices(A2, self.A) # Calcula A3 en memoria.
                 self.gestor.guardar_matriz("matriz_A.txt",  self.A,  "Matriz A")
                 self.gestor.guardar_matriz("matriz_A3.txt", self.A3, "Matriz A3")
 
@@ -601,7 +606,14 @@ class App(tk.Tk):
             # Paso 8: memoria
             mem_actual, mem_pico = obtener_memoria_actual_y_pico() # Lee memoria medida.
             detener_medicion_memoria()             # Detiene tracemalloc.
-            estimacion = estimar_memoria_matriz(n) # Estimacion teorica.
+            estimacion = estimar_memoria_estructuras(
+                A=self.A,
+                A2=A2,
+                A3=self.A3,
+                vector={"A": vec_A, "A3": vec_A3},
+                frecuencias={"A": rep_A, "A3": rep_A3},
+                arbol={"A": self.arbol_A, "A3": self.arbol_A3}
+            )
             validacion_A = {
                 "elementos_matriz": n * n,         # Total de celdas de A.
                 "elementos_arbol": contar_elementos_representados_arbol(self.arbol_A),

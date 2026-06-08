@@ -4,6 +4,7 @@
 
 import os # Permite crear carpetas y abrir archivos con el programa predeterminado.
 
+from medicion_memoria import reporte_memoria_a_texto
 from proyecto_final import ordenar_ascendente
 
 
@@ -248,7 +249,11 @@ class ConstructorTexto:
 
         salida += "\n\nMEMORIA\n"
         salida += "-------\n"
-        salida += "Estimacion A   : " + str(estimacion)         + " bytes\n"
+        if isinstance(estimacion, dict):
+            salida += reporte_memoria_a_texto(estimacion)
+        else:
+            salida += "Estimacion A   : " + str(estimacion) + " bytes\n"
+        salida += "\nMedicion real con tracemalloc:\n"
         salida += "Memoria actual : " + str(mem_actual // 1024) + " KB\n"
         salida += "Memoria pico   : " + str(mem_pico   // 1024) + " KB\n"
 
