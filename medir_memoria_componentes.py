@@ -29,12 +29,19 @@ from proyecto_final import (
 
 
 def obtener_rss_bytes():
-    """Retorna la memoria residente total del proceso actual."""
+    """Retorna memoria del proceso con psutil.
+
+    En Windows se prefiere private bytes porque el working set/RSS puede bajar
+    por recortes del sistema operativo y producir diferencias negativas.
+    """
     if psutil is None:
         raise RuntimeError("Instala psutil con: pip install psutil")
 
     proceso = psutil.Process(os.getpid())
-    return proceso.memory_info().rss
+    memoria = proceso.memory_info()
+    if hasattr(memoria, "private"):
+        return memoria.private
+    return memoria.rss
 
 
 def convertir_memoria(bytes_valor):
@@ -44,16 +51,21 @@ def convertir_memoria(bytes_valor):
     return bytes_valor, kb, mb
 
 
+def texto_memoria(bytes_valor):
+    """Retorna bytes, KB y MB en una sola linea de texto."""
+    b, kb, mb = convertir_memoria(bytes_valor)
+    return f"{b} bytes | {kb:.2f} KB | {mb:.4f} MB"
+
+
 def imprimir_medicion(nombre, inicial, final):
     """Imprime memoria inicial, final y diferencia aproximada."""
     diferencia = final - inicial
-    b, kb, mb = convertir_memoria(diferencia)
 
     print("\n" + nombre)
     print("-" * len(nombre))
     print(f"Memoria inicial : {inicial / 1024 / 1024:.4f} MB")
     print(f"Memoria final   : {final / 1024 / 1024:.4f} MB")
-    print(f"Consumo aprox.  : {b} bytes | {kb:.2f} KB | {mb:.4f} MB")
+    print("Consumo aprox.  : " + texto_memoria(diferencia))
 
 
 def medir_backend(n):
@@ -165,6 +177,71 @@ def medir_programa_completo(n):
             pass
 
 
+def medir_desglose_mismo_proceso(n):
+    """Mide frontend, backend integrado y total dentro del mismo proceso."""
+    import tkinter.messagebox as messagebox
+    import interfaz_grafica
+    from interfaz_grafica import App
+
+    gc.collect()
+    memoria_base = obtener_rss_bytes()
+
+    max_n_original = interfaz_grafica.MAX_N
+    askyesno_original = messagebox.askyesno
+    app = None
+
+    interfaz_grafica.MAX_N = n
+    messagebox.askyesno = lambda *args, **kwargs: True
+
+    try:
+        app = App()
+        app.update_idletasks()
+        app.update()
+
+        time.sleep(1)
+        memoria_despues_frontend = obtener_rss_bytes()
+
+        app.entry_n.delete(0, "end")
+        app.entry_n.insert(0, str(n))
+
+        app.generar()
+        app.update_idletasks()
+        app.update()
+
+        time.sleep(1)
+        memoria_despues_datos = obtener_rss_bytes()
+
+        memoria_frontend = memoria_despues_frontend - memoria_base
+        memoria_backend_integrado = memoria_despues_datos - memoria_despues_frontend
+        memoria_programa_completo = memoria_despues_datos - memoria_base
+
+        print("\nDESGLOSE EN EL MISMO PROCESO CON n = " + str(n))
+        print("----------------------------------------")
+        print("Memoria base              : " + texto_memoria(memoria_base))
+        print("Después de crear frontend : " + texto_memoria(memoria_despues_frontend))
+        print("Después de generar datos  : " + texto_memoria(memoria_despues_datos))
+        print()
+        print("Frontend base             : " + texto_memoria(memoria_frontend))
+        print("Backend + integración     : " + texto_memoria(memoria_backend_integrado))
+        print("Programa completo         : " + texto_memoria(memoria_programa_completo))
+        print()
+        print("Verificación:")
+        print("Frontend + Backend integrado = Programa completo")
+        print(
+            f"{memoria_frontend / 1024 / 1024:.4f} MB + "
+            f"{memoria_backend_integrado / 1024 / 1024:.4f} MB = "
+            f"{memoria_programa_completo / 1024 / 1024:.4f} MB"
+        )
+    finally:
+        interfaz_grafica.MAX_N = max_n_original
+        messagebox.askyesno = askyesno_original
+        if app is not None:
+            try:
+                app.destroy()
+            except Exception:
+                pass
+
+
 def main():
     """Ejecuta una medicion segun los argumentos de consola."""
     if len(sys.argv) < 2:
@@ -172,6 +249,7 @@ def main():
         print("python medir_memoria_componentes.py backend 50")
         print("python medir_memoria_componentes.py frontend")
         print("python medir_memoria_componentes.py completo 50")
+        print("python medir_memoria_componentes.py desglose 50")
         return
 
     tipo = sys.argv[1].lower()
@@ -191,6 +269,12 @@ def main():
                 return
             n = int(sys.argv[2])
             medir_programa_completo(n)
+        elif tipo == "desglose":
+            if len(sys.argv) < 3:
+                print("Falta n. Ejemplo: python medir_memoria_componentes.py desglose 50")
+                return
+            n = int(sys.argv[2])
+            medir_desglose_mismo_proceso(n)
         else:
             print("Tipo de prueba no valido.")
     except RuntimeError as error:

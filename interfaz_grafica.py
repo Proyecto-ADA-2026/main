@@ -14,7 +14,7 @@ import tkinter as tk                 # Libreria para crear la ventana grafica en
 from tkinter import ttk, messagebox  # ttk = widgets modernos; messagebox = dialogos de alerta
 from gestor_txt import GestorArchivos, ConstructorTexto # Servicios para archivos y textos de resumen.
 
-MAX_N = 150                           # Tamano maximo de n (A3 cuesta O(n3) en tiempo y O(n2) en memoria)
+MAX_N = 50                            # Tamano maximo de n (A3 cuesta O(n3) en tiempo y O(n2) en memoria)
 
 from proyecto_final import (         # Importa solo funciones algoritmicas usadas por la interfaz.
     crear_matriz,                     # Genera matriz n*n con numeros aleatorios 0-9
