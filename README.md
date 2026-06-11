@@ -142,6 +142,25 @@ También mide los tiempos de ejecución y muestra cuál búsqueda fue más rápi
 
 ---
 
+## Justificación algorítmica
+
+El cálculo de `A³` se realiza en dos pasos:
+
+```text
+A² = A × A
+A³ = A² × A
+```
+
+Por lo tanto, calcular `A³` implica dos multiplicaciones de matrices. Cada multiplicación de matrices cuadradas tiene costo `O(n³)`, así que el costo real aproximado del cálculo completo es `2·O(n³)`. En análisis asintótico se eliminan las constantes, por eso se expresa como `O(n³)`.
+
+La generación de la matriz `A` recorre sus `n²` posiciones, por eso cuesta `O(n²)`. Mostrar una matriz completa también cuesta `O(n²)`; por esa razón, cuando `n > 20`, la interfaz muestra una vista previa y guarda los archivos completos en `resultados/`.
+
+El análisis de pares, impares, primos, perfectos y cuadrados perfectos también recorre los `n²` elementos de cada matriz. La búsqueda secuencial en matriz puede recorrer todas las posiciones, así que su costo es `O(n²)`.
+
+La búsqueda en el árbol equilibrado depende de la altura del árbol. Como el árbol se construye con valores únicos y queda balanceado, su costo aproximado es `O(log u)`, donde `u` es la cantidad de valores únicos almacenados.
+
+---
+
 ## Tipo de árbol seleccionado
 
 En este proyecto se usa un Árbol Binario de Búsqueda Equilibrado de Frecuencias. Cada nodo almacena un diccionario JSON de la forma:
@@ -152,7 +171,9 @@ En este proyecto se usa un Árbol Binario de Búsqueda Equilibrado de Frecuencia
 
 `valor` corresponde al número encontrado en la matriz y `cantidad` indica cuántas veces aparece.
 
-Aunque el árbol no guarda un nodo por cada celda de la matriz, todos los elementos están representados: la suma de las cantidades de todos los nodos debe ser igual a `n²`. Si la matriz tiene 16 posiciones, el árbol puede tener menos nodos porque agrupa valores repetidos, pero la suma de sus frecuencias debe seguir dando 16.
+El árbol no guarda un nodo por cada celda de la matriz. Guarda un nodo por cada valor único encontrado, y ese nodo conserva dos datos: el `valor` y la `cantidad` de apariciones. No se pierde información porque la suma de las cantidades de todos los nodos debe ser igual a `n²`.
+
+Por ejemplo, si la matriz tiene 16 posiciones, el árbol puede tener menos de 16 nodos porque agrupa valores repetidos. Aun así, la suma de sus frecuencias debe seguir dando 16. Esto reduce nodos repetidos y permite comparar la búsqueda secuencial en matriz contra la búsqueda en árbol.
 
 La comparación entre nodos se realiza usando únicamente el valor numérico almacenado en `"valor"`. Si el dato buscado es menor, la búsqueda continúa por el subárbol izquierdo. Si es mayor, continúa por el subárbol derecho. Si es igual, el dato fue encontrado y se retorna el diccionario con su frecuencia.
 
@@ -168,6 +189,14 @@ La comparación entre nodos se realiza usando únicamente el valor numérico alm
 - Para matrices grandes se muestra una vista previa y se guardan archivos `.txt`.
 - El árbol se construye con valores únicos y frecuencias para reducir nodos repetidos.
 - El sistema mide memoria actual y memoria pico usando herramientas estándar de Python.
+
+---
+
+## Ubicación del límite máximo de n
+
+El límite máximo `MAX_N` está definido en `proyecto_final.py`, porque corresponde a una restricción algorítmica del backend y no a una regla visual de la interfaz. La interfaz `interfaz_grafica.py` importa `MAX_N` desde el backend y solo lo consulta para validar la entrada del usuario.
+
+Esta decisión evita duplicar valores entre archivos y separa correctamente la lógica algorítmica de la interfaz gráfica. El límite existe porque calcular `A³` implica dos multiplicaciones de matrices (`A² = A × A` y luego `A³ = A² × A`), lo que tiene costo cúbico y puede consumir mucho tiempo y memoria.
 
 ---
 
@@ -296,12 +325,25 @@ Ejecutar el proyecto:
 python interfaz_grafica.py
 ```
 
+## Restricción de sistema operativo
+
+El proyecto está pensado para ejecutarse en Windows. La interfaz usa Tkinter para la ventana principal y `os.startfile` para abrir automáticamente los archivos generados desde la carpeta `resultados/`.
+
+Si la apertura automática no funciona, los archivos pueden abrirse manualmente desde:
+
+```text
+resultados/
+```
+
+Esta decisión no afecta la lógica algorítmica del proyecto; solo corresponde a la forma de abrir archivos desde la interfaz.
+
 El proyecto usa librerías estándar de Python:
 
 - `tkinter`
 - `random`
 - `time`
 - `os`
+- `sys`
 - `tracemalloc`
 
 ---
@@ -338,7 +380,7 @@ Ejemplos recomendados:
 
 ## Matrices grandes
 
-Cuando `n > 20`, el programa muestra una advertencia. Para evitar que la interfaz se sature:
+Cuando `20 < n <= 50`, el programa muestra una advertencia. Para evitar que la interfaz se sature:
 
 - se muestra una vista previa en pantalla,
 - se guarda la matriz completa en `.txt`,
@@ -416,6 +458,21 @@ Validar la búsqueda con:
 
 - un número que exista,
 - un número que no exista.
+
+---
+
+## Evidencias recomendadas para la entrega
+
+Antes de entregar, se recomienda anexar capturas de:
+
+- ejecución con `n = 4`,
+- matriz `A` generada,
+- matriz `A³` generada,
+- resumen de análisis,
+- árbol `A`,
+- árbol `A³`,
+- búsqueda comparativa en matriz y árbol,
+- archivos `.txt` y `.json` generados en la carpeta `resultados`.
 
 ---
 

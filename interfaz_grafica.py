@@ -18,7 +18,6 @@ from proyecto_final import (         # Importa solo funciones algoritmicas usada
     MAX_N,                            # Limite logico de n definido por el backend.
     crear_matriz,                     # Genera matriz n*n con numeros aleatorios 0-9
     multiplicar_matrices,             # Multiplica matrices cuadradas para calcular A2 y A3
-    guardar_A3_directo_txt,           # Calcula y guarda A3 fila por fila para matrices grandes
     analizar_matriz,                  # Clasifica cada elemento: par, impar, primo, perfecto, cuadrado
     contar_repeticiones,              # Cuenta cuantas veces aparece cada valor en la matriz
     frecuencias_a_json_ordenado,      # Convierte el dict de frecuencias a lista de dicts ordenada
@@ -535,7 +534,9 @@ class App(tk.Tk):
         if n > MAX_N:                             # Limite para evitar consumo excesivo.
             messagebox.showerror("Error",
                 "n supera el limite de " + str(MAX_N) +
-                ". El calculo de A3 (O(n3)) consumiria demasiada RAM.")
+                ". Este limite esta definido en la logica del proyecto porque "
+                "calcular A3 requiere dos multiplicaciones de matrices "
+                "y puede consumir mucho tiempo y memoria.")
             return
         if n > 20:                                # Advierte que se mostrara una vista previa.
             ok = messagebox.askyesno("Advertencia",
@@ -552,12 +553,13 @@ class App(tk.Tk):
             self.A = crear_matriz(n)              # Genera la matriz A con el backend.
 
             A2 = None                             # Se conserva para el reporte detallado de memoria.
-            if n > 100:                           # Ruta para matrices muy grandes.
+            if n > 20:                            # Ruta para matrices grandes dentro del limite permitido.
                 self.gestor.guardar_matriz("matriz_A.txt", self.A, "Matriz A")
-                self.status.config(text="Estado: guardando A3 fila por fila...")
+                self.status.config(text="Estado: calculando A2 y A3 para matriz grande...")
                 self.update_idletasks()
-                ruta_a3 = self.gestor.CARPETA + "\\" + "matriz_A3.txt"
-                self.A3 = guardar_A3_directo_txt(self.A, ruta_a3) # Calcula y guarda A3.
+                A2 = multiplicar_matrices(self.A, self.A) # Calcula A2 para medirla y construir A3.
+                self.A3 = multiplicar_matrices(A2, self.A) # Calcula A3 en memoria.
+                self.gestor.guardar_matriz("matriz_A3.txt", self.A3, "Matriz A3")
             else:
                 A2 = multiplicar_matrices(self.A, self.A) # Calcula A2 para medirla y construir A3.
                 self.A3 = multiplicar_matrices(A2, self.A) # Calcula A3 en memoria.

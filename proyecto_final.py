@@ -13,7 +13,8 @@ import random      # Permite generar los valores aleatorios de la matriz.
 import time        # Permite medir tiempos de busqueda en nanosegundos.
 
 
-MAX_N = 50         # Tamaño máximo permitido para n por el costo de A3.
+# A3 requiere calcular A2 = A*A y luego A3 = A2*A; por eso se limita n.
+MAX_N = 50         # Límite máximo permitido para n por el costo de calcular A³.
 
 
 # ==============================================================================
