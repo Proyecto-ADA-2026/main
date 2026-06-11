@@ -4,7 +4,6 @@
 
 import os # Permite crear carpetas y abrir archivos con el programa predeterminado.
 
-from medicion_memoria import reporte_memoria_a_texto
 from proyecto_final import ordenar_ascendente
 
 
@@ -37,39 +36,6 @@ class GestorArchivos:
             return True
         except:
             return False
-
-    def guardar_txt(self, nombre_archivo, contenido):
-        """Guarda un texto completo dentro de la carpeta resultados."""
-        self.crear_carpeta()
-        ruta = self._ruta(nombre_archivo)      # Calcula la ubicacion del archivo.
-        f = open(ruta, "w", encoding="utf-8")
-        f.write(contenido)                     # Escribe el contenido recibido.
-        f.close()
-
-    def guardar_matriz(self, nombre_archivo, matriz, titulo):
-        """Guarda una matriz en TXT con columnas alineadas."""
-        self.crear_carpeta()
-        ruta = self._ruta(nombre_archivo)      # Ruta donde se guardara la matriz.
-        n = len(matriz)                        # Tamano de la matriz cuadrada.
-        f = open(ruta, "w", encoding="utf-8")
-
-        f.write(titulo + "\n")
-        f.write("Tamano: " + str(n) + "x" + str(n) + "\n")
-
-        sep = ""                               # Separador visual del encabezado.
-        for i in range(60):                    # Construye el separador manualmente.
-            sep += "="
-        f.write(sep + "\n\n")
-
-        for fila in matriz:                    # Recorre cada fila de la matriz.
-            linea = ""                         # Acumulador de la fila formateada.
-            for i in range(len(fila)):         # Recorre cada columna.
-                linea += f"{fila[i]:10}"       # Alinea cada valor con ancho fijo.
-                if i < len(fila) - 1:          # Agrega separacion entre columnas.
-                    linea += "   "
-            f.write(linea + "\n")
-
-        f.close()
 
     def _nodo_a_texto_json(self, nodo_dict, sangria):
         """Convierte recursivamente un diccionario de nodo a texto JSON manual."""
@@ -227,7 +193,6 @@ class ConstructorTexto:
 
     def construir_salida(self, analisis_A, analisis_A3, rep_A, rep_A3,
                           va_asc, va_desc, va3_asc, va3_desc,
-                          mem_actual, mem_pico, estimacion,
                           validacion_A=None, validacion_A3=None):
         """Une todos los bloques de texto que se muestran en el panel derecho."""
         salida = ""                            # Acumulador completo del resumen.
@@ -246,16 +211,6 @@ class ConstructorTexto:
         salida += "\n\nA descendente:\n"  + self.vector_a_texto(va_desc, 1200)
         salida += "\n\nA3 ascendente:\n"  + self.vector_a_texto(va3_asc, 1200)
         salida += "\n\nA3 descendente:\n" + self.vector_a_texto(va3_desc,1200)
-
-        salida += "\n\nMEMORIA\n"
-        salida += "-------\n"
-        if isinstance(estimacion, dict):
-            salida += reporte_memoria_a_texto(estimacion)
-        else:
-            salida += "Estimacion A   : " + str(estimacion) + " bytes\n"
-        salida += "\nMedicion real con tracemalloc:\n"
-        salida += "Memoria actual : " + str(mem_actual // 1024) + " KB\n"
-        salida += "Memoria pico   : " + str(mem_pico   // 1024) + " KB\n"
 
         if validacion_A is not None and validacion_A3 is not None:
             salida += "\nVALIDACION DE ARBOLES\n"

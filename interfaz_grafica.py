@@ -35,14 +35,6 @@ from proyecto_final import (         # Importa solo funciones algoritmicas usada
     contar_elementos_representados_arbol, # Suma las frecuencias guardadas en el arbol
 )
 
-from medicion_memoria import (        # Utilidades separadas para estimacion y medicion de memoria.
-    iniciar_medicion_memoria,
-    obtener_memoria_actual_y_pico,
-    detener_medicion_memoria,
-    estimar_memoria_estructuras,
-)
-
-
 # ==============================================================================
 # VISUALIZADOR GRAFICO DEL ARBOL
 # ==============================================================================
@@ -311,14 +303,12 @@ class App(tk.Tk):
         ttk.Button(top, text="Generar matriz A y A3", # Boton que inicia todo el procesamiento.
                    style="Primary.TButton",
                    command=self.generar).pack(side="left", padx=10)
-        tk.Label(top, text="(Si n > 20 se muestra vista previa y se guarda en .txt)",
+        tk.Label(top, text="(Si n > 20 se muestra vista previa en pantalla)",
                  bg="#f4f6f9", fg="#666666", font=("Segoe UI", 10)).pack(side="left", padx=10)
 
         # Botones secundarios
         bf = ttk.Frame(principal, style="Main.TFrame")
         bf.pack(fill="x", padx=20, pady=(0, 10))
-        ttk.Button(bf, text="Abrir TXT A",       command=lambda: self._abrir("matriz_A.txt")).pack(side="left",  padx=5) # Abre salida de A.
-        ttk.Button(bf, text="Abrir TXT A3",      command=lambda: self._abrir("matriz_A3.txt")).pack(side="left", padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A",  command=lambda: self._abrir("arbol_A.json")).pack(side="left",  padx=5)
         ttk.Button(bf, text="Ver Arbol A",  command=lambda: self._mostrar_grafico_arbol("Visualizacion Arbol A",  self.arbol_A)).pack(side="left",  padx=5)
         ttk.Button(bf, text="Ver JSON Arbol A3", command=lambda: self._abrir("arbol_A3.json")).pack(side="left", padx=5)
@@ -540,7 +530,7 @@ class App(tk.Tk):
             return
         if n > 20:                                # Advierte que se mostrara una vista previa.
             ok = messagebox.askyesno("Advertencia",
-                "n es grande. Se mostrara vista previa y se guardaran archivos .txt. Continuar?")
+                "n es grande. Se mostrara vista previa en pantalla. Continuar?")
             if not ok:
                 return
 
@@ -549,22 +539,16 @@ class App(tk.Tk):
 
         try:
             # Paso 1: crear A y calcular A3
-            iniciar_medicion_memoria()            # Comienza medicion de memoria.
             self.A = crear_matriz(n)              # Genera la matriz A con el backend.
 
-            A2 = None                             # Se conserva para el reporte detallado de memoria.
             if n > 20:                            # Ruta para matrices grandes dentro del limite permitido.
-                self.gestor.guardar_matriz("matriz_A.txt", self.A, "Matriz A")
                 self.status.config(text="Estado: calculando A2 y A3 para matriz grande...")
                 self.update_idletasks()
                 A2 = multiplicar_matrices(self.A, self.A) # Calcula A2 para medirla y construir A3.
                 self.A3 = multiplicar_matrices(A2, self.A) # Calcula A3 en memoria.
-                self.gestor.guardar_matriz("matriz_A3.txt", self.A3, "Matriz A3")
             else:
                 A2 = multiplicar_matrices(self.A, self.A) # Calcula A2 para medirla y construir A3.
                 self.A3 = multiplicar_matrices(A2, self.A) # Calcula A3 en memoria.
-                self.gestor.guardar_matriz("matriz_A.txt",  self.A,  "Matriz A")
-                self.gestor.guardar_matriz("matriz_A3.txt", self.A3, "Matriz A3")
 
             # Paso 2: analizar
             analisis_A  = analizar_matriz(self.A)  # Clasifica los valores de A.
@@ -604,17 +588,7 @@ class App(tk.Tk):
             self._set_text(self.txt_arbol,
                            "ARBOL A:\n" + ascii_A + "\n\nARBOL A3:\n" + ascii_A3)
 
-            # Paso 8: memoria
-            mem_actual, mem_pico = obtener_memoria_actual_y_pico() # Lee memoria medida.
-            detener_medicion_memoria()             # Detiene tracemalloc.
-            estimacion = estimar_memoria_estructuras(
-                A=self.A,
-                A2=A2,
-                A3=self.A3,
-                vector={"A": vec_A, "A3": vec_A3},
-                frecuencias={"A": rep_A, "A3": rep_A3},
-                arbol={"A": self.arbol_A, "A3": self.arbol_A3}
-            )
+            # Paso 8: validacion de arboles
             validacion_A = {
                 "elementos_matriz": n * n,         # Total de celdas de A.
                 "elementos_arbol": contar_elementos_representados_arbol(self.arbol_A),
@@ -634,7 +608,6 @@ class App(tk.Tk):
             salida = self.constructor.construir_salida(
                 analisis_A, analisis_A3, rep_A, rep_A3,
                 va_asc, va_desc, va3_asc, va3_desc,
-                mem_actual, mem_pico, estimacion,
                 validacion_A, validacion_A3
             )
             self._set_text(self.txt_result, salida)
@@ -644,7 +617,7 @@ class App(tk.Tk):
             self.gestor.guardar_arbol_json("arbol_A3.json", self._arbol_a_dict(self.arbol_A3), "ArbolA3")
 
             if n > 20:
-                self.status.config(text="Estado: generado. Vista previa en pantalla. Archivos en /resultados.")
+                self.status.config(text="Estado: generado. Vista previa en pantalla.")
             else:
                 self.status.config(text="Estado: generado correctamente. Ya puedes buscar un numero.")
 

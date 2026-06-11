@@ -49,36 +49,6 @@ def crear_matriz(n):
     return matriz                               # Retorna la matriz n x n.
 
 
-def guardar_matriz_directo_txt(n, nombre_archivo="matriz.txt"):
-    """Genera una matriz fila por fila y la escribe en un archivo TXT sin guardarla completa en memoria."""
-    with open(nombre_archivo, "w", encoding="utf-8") as archivo: # Abre el archivo destino en modo escritura.
-        archivo.write("Matriz generada de tamaño " + str(n) + " x " + str(n) + "\n")
-        linea_separadora = ""                  # Acumulador para construir una linea visual de separacion.
-        for _ in range(60):                    # Genera 60 caracteres '=' manualmente.
-            linea_separadora += "="
-        archivo.write(linea_separadora + "\n\n")
-        for i in range(n):                     # Genera cada fila sin almacenar la matriz completa.
-            fila = []                          # Guarda temporalmente los valores de la fila como texto.
-            for j in range(n):                 # Recorre las columnas de la fila actual.
-                valor = random.randint(0, 9)   # Genera el valor de la celda.
-                fila = fila + [str(valor)]     # Guarda el valor como string para escribirlo.
-            linea_texto = ""                   # Acumulador de la fila formateada.
-            for k in range(len(fila)):         # Recorre cada valor textual de la fila.
-                formateado = ""                # Acumulador de la celda alineada.
-                num_str = fila[k]              # Valor de la celda como texto.
-                espacios = 10 - len(num_str)   # Calcula espacios para ancho fijo.
-                formateado += num_str
-                for _ in range(espacios):
-                    formateado += " "
-                linea_texto += formateado
-                if k < len(fila) - 1:
-                   linea_texto += "   "
-            archivo.write(linea_texto + "\n")
-            if i % 100 == 0:
-                print("Generando fila " + str(i) + " de " + str(n) + "...")
-    print("Matriz guardada correctamente en " + str(nombre_archivo))
-
-
 def multiplicar_matrices(x, y):
     """Realiza la multiplicacion de dos matrices n x n sin usar librerias externas ni .append()."""
     n = len(x)                                  # Dimension de las matrices cuadradas.
@@ -99,36 +69,6 @@ def multiplicar_matrices(x, y):
             fila_resultado = fila_resultado + [suma] # Agrega el valor calculado a la fila.
         resultado = resultado + [fila_resultado] # Agrega la fila completa al resultado.
     return resultado                            # Retorna x * y.
-
-
-def guardar_A3_directo_txt(matriz_A, nombre_archivo="matriz_A3.txt"):
-    """Calcula A3 = A * A * A y escribe el resultado directo en TXT fila por fila sin .append() ni .join()."""
-    n = len(matriz_A)                           # Dimension de la matriz A.
-    A2 = multiplicar_matrices(matriz_A, matriz_A) # Calcula A al cuadrado.
-    A3 = multiplicar_matrices(A2, matriz_A)     # Calcula A al cubo.
-    with open(nombre_archivo, "w", encoding="utf-8") as archivo:
-        archivo.write("Matriz A³ de tamaño " + str(n) + " x " + str(n) + "\n")
-        linea_separadora = ""
-        for _ in range(60):
-            linea_separadora += "="
-        archivo.write(linea_separadora + "\n\n")
-        for i in range(len(A3)):
-            fila = A3[i]
-            linea_texto = ""
-            for k in range(len(fila)):
-                num_str = str(fila[k])
-                espacios = 10 - len(num_str)
-                formateado = num_str
-                for _ in range(espacios):
-                    formateado += " "
-                linea_texto += formateado
-                if k < len(fila) - 1:
-                    linea_texto += "   "
-            archivo.write(linea_texto + "\n")
-            if i % 100 == 0:
-                print("Guardando fila " + str(i) + " de " + str(n) + "...")
-    print("Matriz A³ guardada correctamente en " + str(nombre_archivo))
-    return A3
 
 
 def calcular_A3(A):
