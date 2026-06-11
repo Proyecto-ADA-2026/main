@@ -66,20 +66,4 @@ Generar y mostrar una matriz cuesta `O(n2)`. Analizar pares, impares, primos, pe
 
 El arbol binario de busqueda se construye con valores unicos y frecuencias. La busqueda en el arbol equilibrado cuesta aproximadamente `O(log u)`, donde `u` es la cantidad de valores unicos.
 
-## Comandos Git sugeridos
 
-Para crear esta rama desde `main`:
-
-```bash
-git checkout main
-git pull origin main
-git checkout -b consola-sin-memoria
-```
-
-Para guardar y subir la rama:
-
-```bash
-git add .
-git commit -m "Crear version por consola sin medicion de memoria"
-git push origin consola-sin-memoria
-```
