@@ -21,9 +21,7 @@ proyecto_final.py    -> Backend principal / lógica algorítmica
 interfaz_grafica.py  -> Frontend / interfaz gráfica
 gestor_txt.py        -> Generación de texto y guardado de archivos
 medicion_memoria.py  -> Estimación detallada y medición real de memoria
-logica_arbol.py      -> Compatibilidad con imports antiguos
 README.md            -> Documentación del proyecto
-tests/               -> Pruebas automáticas
 ```
 
 ### `proyecto_final.py`
@@ -78,10 +76,6 @@ Contiene las funciones de medición y estimación de memoria:
 - conversión de bytes a KB y MB,
 - reporte detallado de memoria para la interfaz,
 - medición real de memoria actual y pico con `tracemalloc`.
-
-### `logica_arbol.py`
-
-Se conserva como archivo auxiliar de compatibilidad para imports antiguos. No duplica la lógica del árbol; redirige al backend principal `proyecto_final.py`.
 
 ---
 
@@ -409,16 +403,16 @@ Los algoritmos principales fueron implementados manualmente.
 
 ---
 
-## Recomendaciones para pruebas
+## Validación operativa sugerida
 
-Probar con:
+Validar la ejecución principal con:
 
 - `n = 4`
 - `n = 8`
 - `n = 20`
 - `n = 21`
 
-Probar búsqueda con:
+Validar la búsqueda con:
 
 - un número que exista,
 - un número que no exista.
@@ -429,7 +423,7 @@ Probar búsqueda con:
 
 Se puede explicar así:
 
-El proyecto se separó en partes claras. `proyecto_final.py` contiene la lógica algorítmica del taller, `interfaz_grafica.py` contiene la interfaz gráfica, `gestor_txt.py` maneja la generación de texto y el guardado de archivos, y `logica_arbol.py` queda como compatibilidad para imports anteriores. El sistema genera la matriz `A`, calcula `A³`, analiza ambas matrices, ordena sus elementos, cuenta repeticiones y construye árboles binarios equilibrados para comparar tiempos de búsqueda.
+El proyecto se separó en partes claras. `proyecto_final.py` contiene la lógica algorítmica del taller, `interfaz_grafica.py` contiene la interfaz gráfica, `gestor_txt.py` maneja la generación de texto y el guardado de archivos, y `medicion_memoria.py` concentra la estimación y medición de memoria. El sistema genera la matriz `A`, calcula `A³`, analiza ambas matrices, ordena sus elementos, cuenta repeticiones y construye árboles binarios equilibrados para comparar tiempos de búsqueda.
 
 También se puede aclarar:
 

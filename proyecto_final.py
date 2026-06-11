@@ -13,6 +13,9 @@ import random      # Permite generar los valores aleatorios de la matriz.
 import time        # Permite medir tiempos de busqueda en nanosegundos.
 
 
+MAX_N = 50         # Tamaño máximo permitido para n por el costo de A3.
+
+
 # ==============================================================================
 # FUNCIONES AUXILIARES DE TEXTO
 # ==============================================================================
