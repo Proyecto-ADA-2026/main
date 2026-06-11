@@ -476,12 +476,8 @@ Antes de entregar, se recomienda anexar capturas de:
 
 ---
 
-## Recomendación para sustentación
-
-Se puede explicar así:
+## Recomendación
 
 El proyecto se separó en partes claras. `proyecto_final.py` contiene la lógica algorítmica del taller, `interfaz_grafica.py` contiene la interfaz gráfica, `gestor_txt.py` maneja la generación de texto y el guardado de archivos, y `medicion_memoria.py` concentra la estimación y medición de memoria. El sistema genera la matriz `A`, calcula `A³`, analiza ambas matrices, ordena sus elementos, cuenta repeticiones y construye árboles binarios equilibrados para comparar tiempos de búsqueda.
-
-También se puede aclarar:
 
 Para matrices grandes, el árbol sí se construye, pero no siempre es cómodo visualizarlo completo. La búsqueda en el árbol sigue funcionando normalmente, y su estructura queda guardada en archivos `.json`.
