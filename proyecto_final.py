@@ -245,7 +245,7 @@ def contar_repeticiones(matriz):
                 frecuencias[valor] = 1          # Si es nuevo, inicia su frecuencia.
     return frecuencias                          # Retorna la tabla de frecuencias.
 
-
+ 
 def buscar_y_contar_en_matriz(matriz, buscado):
     """Realiza una busqueda secuencial en la matriz para determinar si existe y cuantas veces se repite."""
     encontrado = False                          # Bandera que indica si el valor aparece.
@@ -269,7 +269,7 @@ def frecuencias_a_json_ordenado(frecuencias):
     """Convierte el diccionario de frecuencias en una lista ordenada por valor sin usar .append()."""
     claves = []                                  # Guarda las claves del diccionario.
     for clave in frecuencias:                    # Recorre cada valor unico.
-        claves = claves + [clave]                # Agrega sin .append().
+        claves = claves + [clave]               
     claves_ordenadas = ordenar_ascendente(claves) # Ordena los valores unicos.
     lista_json = []                              # Lista de nodos en formato valor/cantidad.
     for i in range(len(claves_ordenadas)):       # Recorre valores ordenados.

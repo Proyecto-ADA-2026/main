@@ -3,6 +3,13 @@
 # ==============================================================================
 # Este archivo contiene la ventana principal de Tkinter, la visualizacion del
 # arbol, las validaciones de entrada y los eventos que llaman al backend.
+# La interfaz no implementa los algoritmos principales: solo captura datos,
+# llama funciones de proyecto_final.py, muestra resultados y guarda salidas.
+# Flujo general:
+# 1. El usuario ingresa n y presiona "Generar matriz A y A3".
+# 2. La interfaz valida n, crea A, calcula A2/A3 y construye resumen/arboles.
+# 3. Los botones secundarios abren archivos o visualizaciones ya generadas.
+# 4. La busqueda compara matriz contra arbol usando tiempos promedio.
 # ==============================================================================
 
 
@@ -50,24 +57,29 @@ from medicion_memoria import (        # Utilidades separadas para estimacion y m
 # ==============================================================================
 
 class VisualizadorArbol(tk.Toplevel):
-    """Ventana emergente para visualizar el arbol BST graficamente con nodos y lineas."""
+    """Ventana emergente para visualizar el arbol BST graficamente con nodos y lineas.
+
+    Esta clase recibe una raiz ya construida por el backend. Su responsabilidad
+    es puramente visual: calcular posiciones, dibujar nodos y mostrar detalles
+    al pasar el mouse.
+    """
 
     def __init__(self, padre, raiz, titulo):
-        super().__init__(padre)
-        self.title(titulo)
-        self.geometry("1100x750")
-        self.configure(bg="#121214")
-        self.minsize(800, 600)
+        super().__init__(padre)                 # Inicializa la ventana secundaria de Tkinter.
+        self.title(titulo)                      # Titulo visible de la ventana emergente.
+        self.geometry("1100x750")               # Tamano inicial suficiente para arboles medianos.
+        self.configure(bg="#121214")            # Fondo oscuro para contrastar los nodos.
+        self.minsize(800, 600)                  # Evita que el usuario reduzca demasiado la ventana.
 
         # Hacer la ventana flotante sobre el padre
         self.transient(padre)
 
-        self.raiz = raiz
-        self.nodos_ovales = {}
-        self.nodos_datos = {}
+        self.raiz = raiz                        # Raiz del BST que se va a dibujar.
+        self.nodos_ovales = {}                  # Relaciona id(nodo) con el ovalo dibujado.
+        self.nodos_datos = {}                   # Relaciona id(nodo) con valor y cantidad.
 
         # Contenedor principal con scrollbars
-        frame = ttk.Frame(self)
+        frame = ttk.Frame(self)                 # Contenedor del canvas y sus barras de scroll.
         frame.pack(fill="both", expand=True, padx=10, pady=(10, 5))
 
         sb_y = ttk.Scrollbar(frame, orient="vertical")
@@ -113,7 +125,11 @@ class VisualizadorArbol(tk.Toplevel):
         return h_der + 1
 
     def _calcular_posiciones(self, nodo, depth, coordenadas, contador):
-        """Calcula las posiciones de cada nodo usando recorrido inorden."""
+        """Calcula las posiciones de cada nodo usando recorrido inorden.
+
+        El recorrido inorden ubica los valores menores a la izquierda y los
+        mayores a la derecha. El contador funciona como columna horizontal.
+        """
         if nodo is None:
             return contador
         # Rama izquierda
@@ -131,7 +147,11 @@ class VisualizadorArbol(tk.Toplevel):
         return contador
 
     def _dibujar(self, nodo, coordenadas):
-        """Dibuja de forma recursiva lineas y luego nodos (ovalos + textos)."""
+        """Dibuja de forma recursiva lineas y luego nodos (ovalos + textos).
+
+        Primero se dibujan conexiones para que queden debajo de los circulos.
+        Despues se dibuja cada nodo con su valor y frecuencia.
+        """
         if nodo is None:
             return
         x, y = coordenadas[id(nodo)]
@@ -199,7 +219,11 @@ class VisualizadorArbol(tk.Toplevel):
         )
 
     def graficar(self):
-        """Dibuja el arbol calculando dimensiones y configurando el scrollregion."""
+        """Dibuja el arbol calculando dimensiones y configurando el scrollregion.
+
+        Si la raiz es None, muestra un aviso. En caso contrario calcula la
+        cantidad de nodos, altura, coordenadas y limites de desplazamiento.
+        """
         if self.raiz is None:
             self.canvas.create_text(
                 200, 100,
@@ -239,7 +263,11 @@ class VisualizadorArbol(tk.Toplevel):
 # ==============================================================================
 
 class App(tk.Tk):
-    """Ventana principal de la aplicacion. Hereda de tk.Tk."""
+    """Ventana principal de la aplicacion. Hereda de tk.Tk.
+
+    Mantiene el estado visible del programa: matrices, arboles, textos y
+    botones. Las operaciones matematicas se delegan al backend.
+    """
 
     def __init__(self):
         """Constructor: inicializa la ventana, crea los objetos auxiliares y construye la UI."""
@@ -288,7 +316,11 @@ class App(tk.Tk):
     # ==========================================================================
 
     def _construir_ui(self):
-        """Crea y posiciona todos los widgets de la ventana principal."""
+        """Crea y posiciona todos los widgets de la ventana principal.
+
+        La pantalla se divide en entrada superior, botones de archivos/arboles,
+        busqueda, panel de matrices, resumen, arbol ASCII y barra de estado.
+        """
 
         principal = ttk.Frame(self, style="Main.TFrame") # Contenedor raiz de toda la interfaz.
         principal.pack(fill="both", expand=True)
@@ -411,28 +443,41 @@ class App(tk.Tk):
         return text
 
     def _set_text(self, widget, contenido):
-        """Reemplaza todo el contenido de un widget Text."""
+        """Reemplaza todo el contenido de un widget Text.
+
+        Tkinter requiere habilitar temporalmente el widget para modificar texto
+        y volver a deshabilitarlo para evitar edicion accidental del usuario.
+        """
         widget.config(state="normal")
         widget.delete("1.0", "end")
         widget.insert("1.0", contenido)
         widget.config(state="disabled")
 
     def _add_text(self, widget, contenido):
-        """Agrega texto al final de un widget Text sin borrar el existente."""
+        """Agrega texto al final de un widget Text sin borrar el existente.
+
+        Se usa en la busqueda para anexar resultados al resumen ya generado.
+        """
         widget.config(state="normal")
         widget.insert("end", contenido)
         widget.see("end")
         widget.config(state="disabled")
 
     def _abrir(self, nombre_archivo):
-        """Abre un archivo de resultados con el programa predeterminado del SO."""
+        """Abre un archivo de resultados con el programa predeterminado del SO.
+
+        La interfaz no arma rutas directamente; delega en GestorArchivos.
+        """
         ok = self.gestor.abrir_archivo(nombre_archivo) # Delegacion al gestor de archivos.
         if not ok:
             messagebox.showwarning("Archivo no encontrado",
                                    "Primero genera la matriz para crear el archivo.")
 
     def _mostrar_grafico_arbol(self, titulo, raiz_arbol):
-        """Abre la ventana emergente con la visualizacion grafica del arbol."""
+        """Abre la ventana emergente con la visualizacion grafica del arbol.
+
+        La validacion evita abrir una ventana vacia antes de generar datos.
+        """
         if raiz_arbol is None:                   # Valida que el arbol ya haya sido construido.
             messagebox.showwarning("Sin datos", "Primero genera la matriz para construir el arbol.")
             return
@@ -443,6 +488,8 @@ class App(tk.Tk):
         n > 20: vista previa lim x lim.
         n <= 20: muestra la matriz completa.
         Usa for, if y +=. Sin .join() ni str(lista).
+
+        Esta funcion solo afecta visualizacion, no modifica la matriz original.
         """
         n = len(M)                               # Dimension de la matriz.
         resultado = ""                           # Acumulador del texto a mostrar.
@@ -472,6 +519,8 @@ class App(tk.Tk):
     def _arbol_a_dict(self, nodo):
         """Convierte el arbol BST (NodoJSON) a diccionario Python de forma recursiva.
         NodoJSON tiene: nodo.dato = {"valor": num, "cantidad": freq}.
+
+        El diccionario resultante se entrega al gestor para escribir JSON.
         """
         if nodo is None:                         # Caso base para ramas vacias.
             return None
@@ -485,6 +534,8 @@ class App(tk.Tk):
     def _limpiar_texto(self, texto):
         """Quita espacios al inicio y al final del string sin usar .strip().
         Avanza con while desde los dos extremos.
+
+        Se usa antes de convertir entradas de usuario a entero.
         """
         i = 0                                    # Avanza desde el inicio.
         while i < len(texto) and texto[i] == " ":
@@ -499,6 +550,9 @@ class App(tk.Tk):
     def _es_entero(self, texto):
         """Verifica si un string es un numero entero valido sin int() previo.
         Recorre caracter a caracter comparando con '0' y '9'.
+
+        Separar esta validacion evita que int() lance excepciones por texto no
+        numerico escrito en los campos de entrada.
         """
         if len(texto) == 0:                      # Cadena vacia no es numero.
             return False
@@ -519,7 +573,12 @@ class App(tk.Tk):
     # ==========================================================================
 
     def generar(self):
-        """Genera A, calcula A3, analiza, construye arboles BST y muestra todo."""
+        """Genera A, calcula A3, analiza, construye arboles BST y muestra todo.
+
+        Es el flujo principal del proyecto desde la interfaz. Respeta MAX_N del
+        backend, mide memoria con medicion_memoria.py y actualiza todos los
+        paneles visibles.
+        """
 
         # Validar n
         texto_n = self._limpiar_texto(self.entry_n.get()) # Lee y limpia el valor escrito por el usuario.
@@ -657,7 +716,11 @@ class App(tk.Tk):
     # ==========================================================================
 
     def buscar(self):
-        """Busca un numero en la matriz y en el arbol BST, mide tiempos y compara."""
+        """Busca un numero en la matriz y en el arbol BST, mide tiempos y compara.
+
+        Requiere que las matrices y arboles ya existan. El resultado se agrega
+        al resumen para contrastar O(n2) de matriz contra O(log u) del BST.
+        """
         if self.A is None or self.A3 is None or self.arbol_A is None or self.arbol_A3 is None: # Requiere datos previos.
             messagebox.showwarning("Aviso", "Primero genera la matriz A y A3.")
             return
@@ -754,3 +817,14 @@ class App(tk.Tk):
 if __name__ == "__main__":
     app = App()        # Crea la ventana principal
     app.mainloop()     # Inicia el bucle de eventos de tkinter
+
+
+# ==============================================================================
+# RESUMEN DEL ARCHIVO
+# ==============================================================================
+# interfaz_grafica.py es el frontend del proyecto:
+# - Valida entrada de n usando MAX_N importado desde proyecto_final.py.
+# - Llama al backend para crear A, calcular A2/A3, analizar y buscar.
+# - Guarda TXT/JSON mediante GestorArchivos.
+# - Muestra matrices, resumen, arbol ASCII y arbol grafico en Canvas.
+# - No contiene la logica matematica principal; solo coordina eventos visuales.
